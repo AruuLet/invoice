@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice Generator | By Aruu</title>
-    
-    <!-- Google Fonts: Plus Jakarta Sans for that modern tech vibe -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -15,968 +11,1331 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                    },
                     colors: {
-                        brand: {
-                            light: '#a855f7', // Purple 500
-                            dark: '#c084fc',  // Purple 400
+                        slay: {
+                            neon: '#ff007f',
+                            purple: '#7b2cbf',
+                            blue: '#00f5d4',
+                            dark: '#0b0c10',
+                            glass: 'rgba(255, 255, 255, 0.08)',
+                            glassDark: 'rgba(11, 12, 16, 0.6)'
+                        }
+                    },
+                    animation: {
+                        'gradient-x': 'gradient-x 15s ease infinite',
+                    },
+                    keyframes: {
+                        'gradient-x': {
+                            '0%, 100%': { 'background-position': '0% 50%' },
+                            '50%': { 'background-position': '100% 50%' },
                         }
                     }
                 }
             }
         }
     </script>
-
-    <!-- Libraries for Export -->
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Ekspor Pustaka -->
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- SheetJS (XLSX) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* CSS DOKUMENTASI: 
-           1. gradient-bg: Membuat animasi latar belakang yang bergerak perlahan.
-           2. glass: Efek kaca (Glassmorphism) yang transparan dan blur.
-           3. scrollbar: Mempercantik scrollbar agar terlihat modern.
-        */
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: background-color 0.3s ease;
-        }
-
-        /* Animated Gradient Background */
-        .gradient-bg-dark {
-            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #172554);
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #020617);
             background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-        }
-        .gradient-bg-light {
-            background: linear-gradient(-45deg, #f8fafc, #e2e8f0, #e0e7ff, #f3e8ff);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Glassmorphism Utilities */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            animation: gradient-x 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         
-        .dark .glass {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        .light body {
+            background: linear-gradient(-45deg, #f1f5f9, #e0e7ff, #fae8ff, #f8fafc);
+            background-size: 400% 400%;
+            animation: gradient-x 15s ease infinite;
         }
 
-        /* Input Styles Custom */
-        .input-glass {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
+        /* Glassmorphic Styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
-        .dark .input-glass {
-            background: rgba(30, 41, 59, 0.5);
+
+        .light .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #f8fafc;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .input-glass:focus {
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ff007f;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
             outline: none;
-            border-color: #a855f7;
-            box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+        }
+
+        .light .glass-input {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1e293b;
+        }
+
+        .light .glass-input:focus {
+            background: rgba(0, 0, 0, 0.04);
+            border-color: #7b2cbf;
+            box-shadow: 0 0 15px rgba(123, 44, 191, 0.2);
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-
-        /* A4 Professional Preview Wrapper */
-        .a4-wrapper {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            color: black;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            margin: 0 auto;
-            position: relative;
-            transform-origin: top center;
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+        }
+        .light ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
         }
 
-        /* Make preview scale down on smaller screens */
-        @media (max-width: 1280px) {
-            .preview-container { zoom: 0.8; }
+        /* Custom animated border */
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.15), 0 0 40px rgba(123, 44, 191, 0.15);
         }
-        @media (max-width: 1024px) {
-            .preview-container { zoom: 1; overflow-x: auto; }
-        }
-        
-        /* Hide UI elements during PDF generation */
-        .html2pdf__container { background: white !important; }
     </style>
 </head>
-<body class="gradient-bg-dark min-h-screen text-slate-800 dark:text-slate-200 transition-colors duration-300">
+<body class="text-slate-100 transition-colors duration-500 ease-in-out">
 
-    <!-- Navbar / Header -->
-    <nav class="glass sticky top-0 z-50 px-6 py-4 mb-6">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <i class="ph ph-receipt text-3xl text-purple-500"></i>
-                <h1 class="font-bold text-xl tracking-tight">Invoice<span class="text-purple-500">Generator</span></h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <!-- Status Saved -->
-                <span id="saveStatus" class="text-xs text-green-500 font-medium hidden">
-                    <i class="ph ph-check-circle inline align-middle"></i> <span data-i18n="save_status">Draft Auto-Saved</span>
-                </span>
-                
-                <!-- Language Switcher (Sleek pill control) -->
-                <div class="flex items-center gap-1 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-300/30">
-                    <button onclick="setLanguage('id')" id="lang-id" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition">ID</button>
-                    <button onclick="setLanguage('en')" id="lang-en" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition">EN</button>
-                </div>
+    <!-- Top Glow Effect -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/30 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-[150px] pointer-events-none"></div>
 
-                <!-- Dark/Light Mode -->
-                <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-                    <i class="ph ph-moon text-xl dark:hidden block"></i>
-                    <i class="ph ph-sun text-xl hidden dark:block text-yellow-400"></i>
-                </button>
-            </div>
+    <!-- Toast Notification (Replacement for alert) -->
+    <div id="toast" class="fixed top-5 right-5 z-50 flex items-center p-4 space-x-3 w-full max-w-xs text-white bg-slate-900/90 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 transform translate-y-[-150%] pointer-events-none">
+        <div id="toast-icon" class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-pink-500 text-white">
+            <i class="fa-solid fa-bell"></i>
         </div>
-    </nav>
+        <div class="flex-1 text-sm font-semibold" id="toast-message">Draft auto-saved successfully!</div>
+    </div>
 
-    <!-- Main Content Grid -->
-    <main class="max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- MAIN CONTAINER -->
+    <div class="container mx-auto px-4 py-6 md:py-10 max-w-7xl relative z-10">
         
-        <!-- LEFT COLUMN: EDITOR FORM (Glassmorphism UI) -->
-        <div class="lg:col-span-6 xl:col-span-5 space-y-6">
-            
-            <!-- Export & Action Buttons -->
-            <div class="glass rounded-2xl p-4 flex flex-wrap gap-2 justify-center">
-                <button onclick="exportPDF()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-xl font-semibold transition shadow-lg shadow-purple-500/30 flex justify-center items-center gap-2">
-                    <i class="ph ph-file-pdf"></i> PDF
-                </button>
-                <button onclick="exportPNG()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl font-semibold transition shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2">
-                    <i class="ph ph-image"></i> PNG
-                </button>
-                <button onclick="exportExcel()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl font-semibold transition shadow-lg shadow-green-500/30 flex justify-center items-center gap-2">
-                    <i class="ph ph-file-xls"></i> Excel
-                </button>
-                <button onclick="clearData()" class="w-full mt-2 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 py-2 rounded-xl font-medium hover:bg-red-200 dark:hover:bg-red-800/40 transition">
-                    <i class="ph ph-trash"></i> <span data-i18n="btn_reset">Reset Draft</span>
-                </button>
+        <!-- HEADER / NAVIGATION -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 glass-card rounded-3xl p-6">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-600 to-indigo-500 flex items-center justify-center shadow-lg transform rotate-6 hover:rotate-12 transition-transform">
+                    <span class="text-2xl font-black text-white">A</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400">
+                        Invoice Generator
+                    </h1>
+                    <p class="text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 font-medium tracking-wider">
+                        Created By Aruu
+                    </p>
+                </div>
             </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="p-3 rounded-2xl glass-input flex items-center justify-center hover:scale-105 active:scale-95 transition-all text-slate-300 dark:text-slate-300 light:text-slate-800" title="Ganti Mode">
+                    <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
+                    <span class="ml-2 text-xs font-semibold uppercase tracking-wider hidden sm:inline">Theme</span>
+                </button>
 
-            <!-- Invoice Information -->
-            <div class="glass rounded-2xl p-6">
-                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <i class="ph ph-info"></i> <span data-i18n="section_info">Invoice Info</span>
-                </h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2 flex items-center gap-4">
-                        <label class="cursor-pointer bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 w-full text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-                            <i class="ph ph-upload-simple text-2xl mb-1 text-purple-500"></i>
-                            <p class="text-sm font-medium" data-i18n="label_logo">Upload Logo</p>
-                            <input type="file" id="logoUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'logoUrl')">
-                        </label>
-                        <div id="logoPreviewWrap" class="hidden h-16 w-16 rounded-xl border overflow-hidden shrink-0">
-                            <img id="logoPreviewForm" src="" alt="Logo" class="w-full h-full object-contain bg-white">
+                <!-- Reset Button -->
+                <button id="btn-reset" class="px-4 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Clear Draft
+                </button>
+
+                <!-- Indicator Draft -->
+                <div class="px-4 py-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Auto Save Active
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN: INPUT EDITOR (7 COLS) -->
+            <form id="invoice-form" class="lg:col-span-7 space-y-6" onsubmit="event.preventDefault();">
+                
+                <!-- SECTION 1: INVOICE INFO & LOGO -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6">
+                    <div class="flex items-center space-x-3 mb-2 border-b border-white/5 pb-4">
+                        <span class="text-xl"></span>
+                        <h2 class="text-lg font-bold uppercase tracking-wider text-pink-500">Invoice Specs</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Logo Upload Area -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Logo</label>
+                            <div class="relative group border-2 border-dashed border-white/10 dark:border-white/10 light:border-black/10 hover:border-pink-500/50 rounded-2xl p-4 transition-all text-center cursor-pointer flex flex-col items-center justify-center h-40">
+                                <input type="file" id="logo-upload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <div id="logo-preview-placeholder" class="space-y-2 pointer-events-none flex flex-col items-center">
+                                    <div class="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400">
+                                        <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-300 dark:text-slate-300 light:text-slate-700">Drop Logo Here / Browse</span>
+                                    <span class="text-[10px] text-slate-500">PNG, JPG, SVG up to 2MB</span>
+                                </div>
+                                <div id="logo-preview-container" class="hidden relative w-full h-full items-center justify-center pointer-events-none">
+                                    <img id="logo-img" class="max-h-full max-w-full object-contain rounded-xl" src="" alt="Uploaded Logo">
+                                    <button type="button" id="remove-logo" class="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center text-xs pointer-events-auto shadow-md">
+                                        <i class="fa-solid fa-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Specs Input -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Invoice Number</label>
+                                <div class="relative">
+                                    <input type="text" id="inv-number" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm font-semibold" placeholder="INV-2026-0001">
+                                    <button type="button" id="btn-regen-inv" class="absolute right-2.5 top-2 text-pink-500 hover:text-pink-400 transition-colors text-xs font-bold" title="Generate New Number">
+                                        <i class="fa-solid fa-arrows-rotate text-base mt-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Invoice Status</label>
+                                <select id="inv-status" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-200 dark:text-slate-200 light:text-slate-800 bg-slate-900/40">
+                                    <option value="unpaid" class="bg-slate-900 text-white">🔴 Unpaid</option>
+                                    <option value="paid" class="bg-slate-900 text-white">🟢 Paid</option>
+                                    <option value="pending" class="bg-slate-900 text-white">🟡 Pending</option>
+                                    <option value="overdue" class="bg-slate-900 text-white">💀 Overdue</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_inv_num">Invoice Number</label>
-                        <input type="text" id="invNum" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="INV-2026-001" oninput="updateData()">
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_status">Status</label>
-                        <select id="invStatus" class="input-glass w-full p-2.5 rounded-xl text-sm" onchange="updateData()">
-                            <option value="Unpaid" data-i18n="status_unpaid">🔴 Belum Bayar</option>
-                            <option value="Paid" data-i18n="status_paid">🟢 Lunas</option>
-                            <option value="Pending" data-i18n="status_pending">🟡 Tertunda</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_issue_date">Issue Date</label>
-                        <input type="date" id="invDate" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_due_date">Due Date</label>
-                        <input type="date" id="invDueDate" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Issue Date</label>
+                            <input type="date" id="inv-issue-date" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Due Date</label>
+                            <input type="date" id="inv-due-date" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm font-medium">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Billed By (Freelancer) -->
-            <div class="glass rounded-2xl p-6">
-                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <i class="ph ph-user-circle"></i> <span data-i18n="section_billed_by">Billed By (You)</span>
-                </h2>
-                <div class="space-y-3">
-                    <input type="text" id="devName" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Your Name / Alias" data-i18n-placeholder="ph_dev_name" oninput="updateData()">
-                    <input type="text" id="devCompany" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Company / Studio Name" data-i18n-placeholder="ph_dev_company" oninput="updateData()">
-                    <input type="email" id="devEmail" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Email Address" data-i18n-placeholder="ph_dev_email" oninput="updateData()">
-                    <input type="text" id="devWeb" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Website / Portfolio URL" data-i18n-placeholder="ph_dev_web" oninput="updateData()">
+                <!-- SECTION 2: BILLED BY VS CLIENT (TWO COLS) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Billed By (Our Info) -->
+                    <div class="glass-card rounded-3xl p-6 space-y-4">
+                        <div class="flex items-center space-x-3 mb-1 border-b border-white/5 pb-3">
+                            <span class="text-xl"></span>
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-purple-400">Billed By</h2>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Freelancer Name</label>
+                            <input type="text" id="bill-by-name" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-medium" placeholder="E.g. Kenji Santoso">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Company Name</label>
+                            <input type="text" id="bill-by-company" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-medium" placeholder="E.g. Slay Creative Ltd.">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Email</label>
+                            <input type="email" id="bill-by-email" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-medium" placeholder="kenji@slaycreative.space">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Website</label>
+                            <input type="text" id="bill-by-web" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-medium" placeholder="www.slaycreative.space">
+                        </div>
+                    </div>
+
+                    <!-- Client Info -->
+                    <div class="glass-card rounded-3xl p-6 space-y-4">
+                        <div class="flex items-center space-x-3 mb-1 border-b border-white/5 pb-3">
+                            <span class="text-xl"></span>
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-cyan-400">Client Specs</h2>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Client Name</label>
+                            <input type="text" id="client-name" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-medium" placeholder="E.g. John Doe">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Company Name</label>
+                            <input type="text" id="client-company" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-medium" placeholder="E.g. Big Corporate Inc.">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Email</label>
+                                <input type="email" id="client-email" class="w-full glass-input rounded-xl px-3 py-2 text-xs font-medium" placeholder="client@corp.com">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Phone</label>
+                                <input type="tel" id="client-phone" class="w-full glass-input rounded-xl px-3 py-2 text-xs font-medium" placeholder="+62 81...">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Address</label>
+                            <textarea id="client-address" rows="1" class="w-full glass-input rounded-xl px-3 py-2 text-sm font-medium resize-none" placeholder="123 Financial District, Jakarta"></textarea>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Billed To (Client) -->
-            <div class="glass rounded-2xl p-6">
-                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <i class="ph ph-buildings"></i> <span data-i18n="section_billed_to">Billed To (Client)</span>
-                </h2>
-                <div class="space-y-3">
-                    <input type="text" id="clientName" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Name" data-i18n-placeholder="ph_client_name" oninput="updateData()">
-                    <input type="text" id="clientCompany" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Company" data-i18n-placeholder="ph_client_company" oninput="updateData()">
-                    <input type="email" id="clientEmail" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Email" data-i18n-placeholder="ph_client_email" oninput="updateData()">
-                    <input type="text" id="clientPhone" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Phone" data-i18n-placeholder="ph_client_phone" oninput="updateData()">
-                    <textarea id="clientAddress" rows="2" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Address" data-i18n-placeholder="ph_client_address" oninput="updateData()"></textarea>
-                </div>
-            </div>
+                <!-- SECTION 3: INVOICE ITEMS -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b border-white/5 pb-4 gap-2">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl"></span>
+                            <h2 class="text-lg font-bold uppercase tracking-wider text-purple-400">Project Items</h2>
+                        </div>
+                        
+                        <!-- Currency Selection -->
+                        <div class="flex items-center space-x-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Currency:</label>
+                            <select id="invoice-currency" class="glass-input rounded-xl px-3 py-1.5 text-xs font-bold text-slate-200 dark:text-slate-200 light:text-slate-800 bg-slate-900/40">
+                                <option value="IDR" class="bg-slate-900 text-white">IDR (Rp)</option>
+                                <option value="USD" class="bg-slate-900 text-white">USD ($)</option>
+                                <option value="MYR" class="bg-slate-900 text-white">MYR (RM)</option>
+                                <option value="SGD" class="bg-slate-900 text-white">SGD (S$)</option>
+                                <option value="JPY" class="bg-slate-900 text-white">JPY (¥)</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <!-- Invoice Items -->
-            <div class="glass rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold flex items-center gap-2">
-                        <i class="ph ph-list-dashes"></i> <span data-i18n="section_items">Items</span>
-                    </h2>
-                    <button onclick="addItem()" class="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-purple-200 dark:hover:bg-purple-800/40 transition" data-i18n="btn_add_item">
-                        + Add Item
+                    <!-- Items List Container -->
+                    <div class="space-y-4 overflow-x-auto">
+                        <table class="w-full min-w-[600px] text-left">
+                            <thead>
+                                <tr class="text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-white/5">
+                                    <th class="pb-2 w-2/5">Item Description</th>
+                                    <th class="pb-2 px-2 w-16 text-center">Qty</th>
+                                    <th class="pb-2 px-2 w-32">Price</th>
+                                    <th class="pb-2 px-2 w-20">Tax %</th>
+                                    <th class="pb-2 px-2 w-20">Disc %</th>
+                                    <th class="pb-2 px-2 w-28 text-right">Total</th>
+                                    <th class="pb-2 w-10 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-tbody">
+                                <!-- Dynamic Row Inserted Here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" id="btn-add-item" class="w-full py-3 rounded-2xl border-2 border-dashed border-white/10 dark:border-white/10 light:border-black/10 hover:border-pink-500/50 hover:bg-white/5 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus text-pink-500"></i> Add New Item
                     </button>
-                </div>
-                
-                <!-- Dynamic Items Container -->
-                <div id="itemsContainer" class="space-y-3 mb-4">
-                    <!-- Items injected by JS -->
-                </div>
 
-                <!-- Modifiers (Tax & Discount) -->
-                <div class="grid grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-4">
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500" data-i18n="label_tax">Tax (%)</label>
-                        <input type="number" id="invTax" value="0" min="0" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500" data-i18n="label_discount">Discount (%)</label>
-                        <input type="number" id="invDiscount" value="0" min="0" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment Details -->
-            <div class="glass rounded-2xl p-6">
-                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <i class="ph ph-bank"></i> <span data-i18n="section_payment">Payment Info</span>
-                </h2>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <input type="text" id="bankName" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Bank Name" data-i18n-placeholder="ph_bank_name" oninput="updateData()">
-                    <input type="text" id="accNumber" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Account Number" data-i18n-placeholder="ph_acc_num" oninput="updateData()">
-                    <input type="text" id="accHolder" class="col-span-2 input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Account Holder Name" data-i18n-placeholder="ph_acc_holder" oninput="updateData()">
-                </div>
-                <!-- QRIS Upload -->
-                <div class="flex items-center gap-4">
-                    <label class="cursor-pointer bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 w-full text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-                        <i class="ph ph-qr-code text-2xl mb-1 text-blue-500"></i>
-                        <p class="text-sm font-medium" data-i18n="label_qris">Upload QRIS / QR Payment</p>
-                        <input type="file" id="qrisUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'qrisUrl')">
-                    </label>
-                    <div id="qrisPreviewWrap" class="hidden h-16 w-16 rounded-xl border overflow-hidden shrink-0 bg-white">
-                        <img id="qrisPreviewForm" src="" alt="QRIS" class="w-full h-full object-contain">
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- RIGHT COLUMN: LIVE PREVIEW -->
-        <div class="lg:col-span-6 xl:col-span-7 preview-container flex justify-center lg:justify-start lg:sticky lg:top-24 h-max">
-            
-            <!-- Professional A4 Document Preview -->
-            <div id="invoiceDocument" class="a4-wrapper p-10 font-sans">
-                <!-- Header -->
-                <div class="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
-                    <div class="w-1/2">
-                        <img id="previewLogo" src="" alt="Logo" class="max-h-16 mb-4 hidden">
-                        <h2 id="previewDevName" class="text-2xl font-bold text-slate-800">Your Name</h2>
-                        <p id="previewDevCompany" class="text-sm text-slate-500 mt-1">Company Name</p>
-                        <p id="previewDevEmail" class="text-sm text-slate-500">email@example.com</p>
-                        <p id="previewDevWeb" class="text-sm text-slate-500">www.example.com</p>
-                    </div>
-                    <div class="w-1/2 text-right">
-                        <h1 class="text-4xl font-extrabold text-slate-200 tracking-wider uppercase mb-2" id="previewInvLabel">INVOICE</h1>
-                        <p class="text-lg font-bold text-slate-800" id="previewInvNum">INV-XXXX</p>
-                        <div class="mt-4 flex flex-col items-end gap-1 text-sm text-slate-600">
-                            <div class="flex justify-between w-48">
-                                <span class="font-semibold" id="previewLabelIssue">Tanggal Terbit:</span>
-                                <span id="previewDate">-</span>
+                    <!-- Summary & Math -->
+                    <div class="border-t border-white/5 pt-6 flex justify-end">
+                        <div class="w-full sm:w-72 space-y-3">
+                            <div class="flex justify-between text-xs text-slate-400">
+                                <span>Subtotal</span>
+                                <span id="math-subtotal" class="font-bold">0.00</span>
                             </div>
-                            <div class="flex justify-between w-48">
-                                <span class="font-semibold" id="previewLabelDue">Tenggat Waktu:</span>
-                                <span id="previewDueDate">-</span>
+                            <div class="flex justify-between text-xs text-slate-400">
+                                <span>Total Tax Amount</span>
+                                <span id="math-tax" class="font-bold text-red-400">+ 0.00</span>
                             </div>
-                            <div class="flex justify-between w-48 mt-2 pt-2 border-t border-slate-100">
-                                <span class="font-semibold" id="previewLabelStatus">Status:</span>
-                                <span id="previewStatus" class="font-bold text-red-500">Unpaid</span>
+                            <div class="flex justify-between text-xs text-slate-400 pb-2 border-b border-white/5">
+                                <span>Total Discount</span>
+                                <span id="math-discount" class="font-bold text-emerald-400">- 0.00</span>
+                            </div>
+                            <div class="flex justify-between text-base font-black">
+                                <span class="uppercase tracking-wider text-pink-500">Total Billed</span>
+                                <span id="math-grandtotal" class="text-slate-100 dark:text-slate-100 light:text-slate-800">0.00</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Billed To -->
-                <div class="mb-8">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2" id="previewLabelBilledTo">Ditagih Ke</h3>
-                    <h4 id="previewClientName" class="text-lg font-bold text-slate-800">Client Name</h4>
-                    <p id="previewClientCompany" class="text-sm text-slate-600 font-medium">Company</p>
-                    <p id="previewClientAddress" class="text-sm text-slate-500 whitespace-pre-line mt-1">Address</p>
-                    <p id="previewClientContact" class="text-sm text-slate-500 mt-1">Email / Phone</p>
+                <!-- SECTION 4: PAYMENT SECTIONS & QRIS -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6">
+                    <div class="flex items-center space-x-3 mb-2 border-b border-white/5 pb-4">
+                        <span class="text-xl">💳</span>
+                        <h2 class="text-lg font-bold uppercase tracking-wider text-pink-500">Payment Specs</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left Side: Bank Transfer Info -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Bank Name</label>
+                                <input type="text" id="pay-bank" class="w-full glass-input rounded-xl px-4 py-2 text-sm font-semibold" placeholder="E.g. Bank Central Asia (BCA)">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Account Number</label>
+                                <input type="text" id="pay-acc-number" class="w-full glass-input rounded-xl px-4 py-2 text-sm font-semibold" placeholder="E.g. 8012903823">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Account Name</label>
+                                <input type="text" id="pay-acc-holder" class="w-full glass-input rounded-xl px-4 py-2 text-sm font-semibold" placeholder="E.g. Kenji Santoso">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Code (Optional)</label>
+                                <input type="text" id="pay-swift" class="w-full glass-input rounded-xl px-4 py-2 text-sm font-semibold" placeholder="E.g. CENAIDJA">
+                            </div>
+                        </div>
+
+                        <!-- Right Side: QRIS Upload Area -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">QRIS / Payment QR</label>
+                            <div class="relative group border-2 border-dashed border-white/10 dark:border-white/10 light:border-black/10 hover:border-pink-500/50 rounded-2xl p-4 transition-all text-center cursor-pointer flex flex-col items-center justify-center h-64">
+                                <input type="file" id="qris-upload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <div id="qris-preview-placeholder" class="space-y-2 pointer-events-none flex flex-col items-center">
+                                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                                        <i class="fa-solid fa-qrcode text-xl"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-300 dark:text-slate-300 light:text-slate-700">Drop QRIS / Barcode Here</span>
+                                    <span class="text-[10px] text-slate-500">Scan-to-Pay JPG, PNG image</span>
+                                </div>
+                                <div id="qris-preview-container" class="hidden relative w-full h-full items-center justify-center pointer-events-none">
+                                    <img id="qris-img" class="max-h-full max-w-full object-contain rounded-xl" src="" alt="QRIS Code">
+                                    <button type="button" id="remove-qris" class="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center text-xs pointer-events-auto shadow-md">
+                                        <i class="fa-solid fa-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Table Items -->
-                <div class="min-h-[250px]">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-y-2 border-slate-100">
-                                <th class="py-3 text-sm font-bold text-slate-700 w-1/2" id="thDesc">Deskripsi</th>
-                                <th class="py-3 text-sm font-bold text-slate-700 text-center" id="thQty">Jml</th>
-                                <th class="py-3 text-sm font-bold text-slate-700 text-right" id="thPrice">Harga</th>
-                                <th class="py-3 text-sm font-bold text-slate-700 text-right" id="thAmount">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="previewTableBody" class="text-sm text-slate-600">
-                            <!-- Injected rows go here -->
-                        </tbody>
-                    </table>
+                <!-- SECTION 5: EXPORT CAPABILITIES -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 space-y-4">
+                    <div class="flex items-center space-x-3 border-b border-white/5 pb-4">
+                        <span class="text-xl"></span>
+                        <h2 class="text-lg font-bold uppercase tracking-wider text-cyan-400">Download / Export</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <button type="button" id="btn-export-pdf" class="py-4 px-6 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-pink-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-pdf text-base"></i> Export PDF (A4)
+                        </button>
+                        
+                        <button type="button" id="btn-export-excel" class="py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-excel text-base"></i> Export .xlsx
+                        </button>
+
+                        <button type="button" id="btn-export-png" class="py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-image text-base"></i> Export Image
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Totals & Payment Grid -->
-                <div class="grid grid-cols-2 gap-8 mt-8">
-                    <!-- Payment Info -->
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3" id="previewPaymentTitle">Info Pembayaran</h3>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm">
-                            <p class="mb-1"><span class="font-semibold text-slate-700" id="previewBankLabel">Bank:</span> <span id="previewBank">-</span></p>
-                            <p class="mb-1"><span class="font-semibold text-slate-700" id="previewAccLabel">No. Rekening:</span> <span id="previewAccNum">-</span></p>
-                            <p class="mb-1"><span class="font-semibold text-slate-700" id="previewNameLabel">Nama:</span> <span id="previewAccHolder">-</span></p>
-                            <p id="previewSwiftWrap" class="mb-3 hidden"><span class="font-semibold text-slate-700">Swift:</span> <span id="previewSwift">-</span></p>
+            </form>
+
+            <!-- RIGHT COLUMN: LIVE REAL-TIME PREVIEW (5 COLS) -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="sticky top-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                            Live Preview
+                        </span>
+                    </div>
+
+                    <!-- PREVIEW CANVAS (Standard A4 Aspect Ratio) -->
+                    <div class="shadow-2xl rounded-2xl overflow-hidden border border-white/10 dark:border-white/10 light:border-black/10">
+                        <div id="invoice-preview" class="bg-white text-slate-800 p-8 w-full min-h-[792px] shadow-inner relative text-[11px] leading-normal flex flex-col justify-between" style="font-family: 'Plus Jakarta Sans', sans-serif;">
                             
-                            <img id="previewQris" src="" alt="QRIS" class="w-24 h-24 object-contain rounded border mt-2 hidden bg-white">
-                        </div>
-                    </div>
+                            <!-- Inside Preview Context -->
+                            <div>
+                                <!-- Preview Header: Company Logo & Basic Specs -->
+                                <div class="flex justify-between items-start border-b border-slate-100 pb-5 mb-5">
+                                    <div class="space-y-3">
+                                        <!-- Logo Display -->
+                                        <div id="pv-logo-box" class="h-10 w-32 flex items-center">
+                                            <div id="pv-logo-placeholder" class="text-xs font-bold tracking-tight text-slate-300">
+                                                [COMPANY_LOGO]
+                                            </div>
+                                            <img id="pv-logo-img" class="max-h-full max-w-full object-contain hidden" src="" alt="Invoice Logo">
+                                        </div>
+                                        
+                                        <!-- Billed By -->
+                                        <div class="text-[10px]">
+                                            <p class="font-extrabold text-xs uppercase tracking-tight text-slate-800" id="pv-bill-name">YOUR NAME HERE</p>
+                                            <p class="text-slate-500 font-medium" id="pv-bill-company">Your Company Co.</p>
+                                            <p class="text-slate-400" id="pv-bill-email">hello@yoursite.com</p>
+                                            <p class="text-slate-400" id="pv-bill-web">www.yoursite.com</p>
+                                        </div>
+                                    </div>
 
-                    <!-- Totals -->
-                    <div>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between text-slate-600">
-                                <span id="previewLabelSubtotal">Subtotal</span>
-                                <span id="previewSubtotal">Rp 0</span>
+                                    <div class="text-right">
+                                        <h1 class="text-xl font-extrabold tracking-tight text-slate-900 uppercase">INVOICE</h1>
+                                        <div class="mt-2 space-y-1">
+                                            <p class="text-slate-500 font-semibold">Invoice No: <span id="pv-inv-num" class="text-slate-900 font-extrabold">INV-XXXX</span></p>
+                                            
+                                            <!-- Status Badge -->
+                                            <div class="inline-block mt-1">
+                                                <span id="pv-status-badge" class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-100 text-rose-600">UNPAID</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Client Info & Invoice Dates -->
+                                <div class="grid grid-cols-2 gap-4 border-b border-slate-100 pb-5 mb-5">
+                                    <div>
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">BILLED TO</span>
+                                        <p class="font-extrabold text-slate-900" id="pv-client-name">Client Name</p>
+                                        <p class="font-medium text-slate-600" id="pv-client-company">Client Company Ltd.</p>
+                                        <p class="text-slate-500 mt-1" id="pv-client-email">client@email.com</p>
+                                        <p class="text-slate-500" id="pv-client-phone">+62 000 0000 0000</p>
+                                        <p class="text-slate-400 mt-1" id="pv-client-address">Client Street Address, Country</p>
+                                    </div>
+                                    <div class="text-right flex flex-col justify-end space-y-1">
+                                        <p class="text-slate-500"><strong class="text-slate-700">Issue Date:</strong> <span id="pv-issue-date">2026-06-09</span></p>
+                                        <p class="text-slate-500"><strong class="text-slate-700">Due Date:</strong> <span id="pv-due-date">2026-06-23</span></p>
+                                    </div>
+                                </div>
+
+                                <!-- Items Table -->
+                                <div class="mb-5">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b-2 border-slate-900 text-slate-900 text-[10px] font-extrabold uppercase tracking-tight">
+                                                <th class="py-2 w-1/2">Item & Description</th>
+                                                <th class="py-2 text-center w-10">Qty</th>
+                                                <th class="py-2 text-right w-24">Rate</th>
+                                                <th class="py-2 text-center w-12">Tax</th>
+                                                <th class="py-2 text-center w-12">Disc</th>
+                                                <th class="py-2 text-right w-24">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pv-items-list" class="divide-y divide-slate-100 text-slate-700">
+                                            <!-- Interactive dynamically injected preview lines -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span id="previewLabelTax">Pajak (<span id="previewTaxLabel">0</span>%)</span>
-                                <span id="previewTaxVal">Rp 0</span>
+
+                            <!-- Bottom Context: Total & Payment Specs -->
+                            <div>
+                                <div class="grid grid-cols-12 gap-4 border-t-2 border-slate-100 pt-5">
+                                    
+                                    <!-- QRIS and Banking Specs -->
+                                    <div class="col-span-7 space-y-3">
+                                        <div class="flex gap-4">
+                                            <!-- Mini QRIS Display inside Preview -->
+                                            <div id="pv-qris-box" class="w-16 h-16 border border-slate-200 rounded-lg p-1 hidden items-center justify-center flex-shrink-0 bg-white">
+                                                <img id="pv-qris-img" class="max-h-full max-w-full object-contain" src="" alt="Payment QRIS">
+                                            </div>
+                                            
+                                            <!-- Account Details -->
+                                            <div>
+                                                <span class="text-[9px] font-extrabold text-slate-800 uppercase tracking-wider block mb-1">PAYMENT DETAILS</span>
+                                                <p class="text-slate-500"><strong class="text-slate-700">Bank:</strong> <span id="pv-bank-name">-</span></p>
+                                                <p class="text-slate-500"><strong class="text-slate-700">Acc No:</strong> <span id="pv-acc-num">-</span></p>
+                                                <p class="text-slate-500"><strong class="text-slate-700">Holder:</strong> <span id="pv-acc-name">-</span></p>
+                                                <p class="text-slate-500" id="pv-swift-row"><strong class="text-slate-700">Swift:</strong> <span id="pv-swift-val">-</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Calc Total Breakdown -->
+                                    <div class="col-span-5 text-right space-y-1.5 self-end">
+                                        <div class="flex justify-between text-slate-500">
+                                            <span>Subtotal:</span>
+                                            <span id="pv-subtotal" class="font-semibold text-slate-800">0.00</span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-500">
+                                            <span>Tax:</span>
+                                            <span id="pv-tax" class="font-semibold text-slate-800">0.00</span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-500">
+                                            <span>Discount:</span>
+                                            <span id="pv-discount" class="font-semibold text-slate-800">0.00</span>
+                                        </div>
+                                        <div class="flex justify-between border-t border-slate-200 pt-1.5 text-xs font-black text-slate-950">
+                                            <span class="uppercase tracking-wider">Grand Total:</span>
+                                            <span id="pv-grandtotal">0.00</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Generational Gen-Z Footer -->
+                                <div class="mt-8 border-t border-slate-100 pt-4 text-center text-[9px] font-bold text-slate-400 flex justify-between items-center">
+                                    <span> </span>
+                                    <span> </span>
+                                </div>
                             </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span id="previewLabelDiscount">Diskon (<span id="previewDiscountLabel">0</span>%)</span>
-                                <span id="previewDiscountVal">- Rp 0</span>
-                            </div>
-                            <div class="flex justify-between items-center border-t-2 border-slate-800 pt-3 mt-3">
-                                <span class="text-lg font-bold text-slate-800" id="previewLabelTotal">Total Tagihan</span>
-                                <span id="previewTotal" class="text-xl font-black text-purple-600">Rp 0</span>
-                            </div>
-                        </div>
-                        <div class="mt-8 text-center text-sm text-slate-400 italic" id="previewThankYou">
-                            Terima kasih atas kerja samanya!
+
                         </div>
                     </div>
                 </div>
-
             </div>
+
         </div>
-    </main>
 
-    <!-- LOGIKA JAVASCRIPT -->
+        <!-- FOOTER CREDITS -->
+        <footer class="mt-16 text-center text-xs text-slate-500 dark:text-slate-500 light:text-slate-600 space-y-2 pb-10">
+            <p>Designed & Created by Aruu</p>
+            <p class="text-[10px] uppercase tracking-widest opacity-80">© 2026 @Runnismyself</p>
+        </footer>
+
+    </div>
+
+    <!-- CODE SCRIPT -->
     <script>
-        // Pesan rahasia untuk Developer Gen Z di Console :D
-        console.log("%c✨ No cap, this invoice generator is bussin'. Let's get that bag! 💰", "color: #a855f7; font-size: 16px; font-weight: bold;");
+        // DOM Elements
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+        const logoUpload = document.getElementById('logo-upload');
+        const qrisUpload = document.getElementById('qris-upload');
+        const btnRegenInv = document.getElementById('btn-regen-inv');
+        const btnReset = document.getElementById('btn-reset');
+        const btnAddItem = document.getElementById('btn-add-item');
+        const itemsTbody = document.getElementById('items-tbody');
+        const currencySelect = document.getElementById('invoice-currency');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
 
-        // --- SISTEM TRANSLASI (ID & EN) ---
-        const translations = {
-            id: {
-                save_status: "Draft Tersimpan Otomatis",
-                btn_reset: "Reset Draft",
-                section_info: "Info Invoice",
-                label_logo: "Unggah Logo",
-                label_inv_num: "Nomor Invoice",
-                label_status: "Status",
-                label_issue_date: "Tanggal Terbit",
-                label_due_date: "Tenggat Waktu",
-                status_unpaid: "🔴 Belum Bayar",
-                status_paid: "🟢 Lunas",
-                status_pending: "🟡 Tertunda",
-                status_preview_unpaid: "Belum Bayar",
-                status_preview_paid: "Lunas",
-                status_preview_pending: "Tertunda",
-                section_billed_by: "Ditagih Oleh (Anda)",
-                section_billed_to: "Ditagih Ke (Klien)",
-                section_items: "Daftar Item",
-                btn_add_item: "+ Tambah Item",
-                label_tax: "Pajak (%)",
-                label_discount: "Diskon (%)",
-                section_payment: "Info Pembayaran",
-                label_qris: "Unggah QRIS / Pembayaran QR",
-                
-                // Placeholders ID
-                ph_dev_name: "Nama Lengkap Anda / Alias",
-                ph_dev_company: "Nama Perusahaan / Studio",
-                ph_dev_email: "Alamat Email",
-                ph_dev_web: "Situs Web / Portofolio",
-                ph_client_name: "Nama Klien",
-                ph_client_company: "Perusahaan Klien",
-                ph_client_email: "Email Klien",
-                ph_client_phone: "Nomor Telepon Klien",
-                ph_client_address: "Alamat Klien",
-                ph_item_desc: "Deskripsi Item",
-                ph_bank_name: "Nama Bank",
-                ph_acc_num: "Nomor Rekening",
-                ph_acc_holder: "Nama Pemilik Rekening",
-                ph_swift: "Kode Swift (Opsional)",
+        // Form Inputs
+        const invNum = document.getElementById('inv-number');
+        const invStatus = document.getElementById('inv-status');
+        const invIssueDate = document.getElementById('inv-issue-date');
+        const invDueDate = document.getElementById('inv-due-date');
 
-                // Live Preview ID
-                preview_invoice: "INVOICE",
-                preview_issue: "Tanggal Terbit:",
-                preview_due: "Tenggat Waktu:",
-                preview_status: "Status:",
-                preview_billed_to: "Ditagih Ke",
-                preview_th_desc: "Deskripsi",
-                preview_th_qty: "Jml",
-                preview_th_price: "Harga",
-                preview_th_amount: "Total",
-                preview_pay_title: "Info Pembayaran",
-                preview_pay_bank: "Bank:",
-                preview_pay_acc: "No. Rekening:",
-                preview_pay_name: "Nama:",
-                preview_subtotal: "Subtotal",
-                preview_tax: "Pajak",
-                preview_discount: "Diskon",
-                preview_total: "Total Tagihan",
-                preview_thank_you: "Terima kasih atas kerja samanya! ✨"
-            },
-            en: {
-                save_status: "Draft Auto-Saved",
-                btn_reset: "Reset Draft",
-                section_info: "Invoice Info",
-                label_logo: "Upload Logo",
-                label_inv_num: "Invoice Number",
-                label_status: "Status",
-                label_issue_date: "Issue Date",
-                label_due_date: "Due Date",
-                status_unpaid: "🔴 Unpaid",
-                status_paid: "🟢 Paid",
-                status_pending: "🟡 Pending",
-                status_preview_unpaid: "Unpaid",
-                status_preview_paid: "Paid",
-                status_preview_pending: "Pending",
-                section_billed_by: "Billed By (You)",
-                section_billed_to: "Billed To (Client)",
-                section_items: "Items",
-                btn_add_item: "+ Add Item",
-                label_tax: "Tax (%)",
-                label_discount: "Discount (%)",
-                section_payment: "Payment Info",
-                label_qris: "Upload QRIS / QR Payment",
+        const billByName = document.getElementById('bill-by-name');
+        const billByCompany = document.getElementById('bill-by-company');
+        const billByEmail = document.getElementById('bill-by-email');
+        const billByWeb = document.getElementById('bill-by-web');
 
-                // Placeholders EN
-                ph_dev_name: "Your Name / Alias",
-                ph_dev_company: "Company / Studio Name",
-                ph_dev_email: "Email Address",
-                ph_dev_web: "Website / Portfolio URL",
-                ph_client_name: "Client Name",
-                ph_client_company: "Client Company",
-                ph_client_email: "Client Email",
-                ph_client_phone: "Client Phone",
-                ph_client_address: "Client Address",
-                ph_item_desc: "Item Description",
-                ph_bank_name: "Bank Name",
-                ph_acc_num: "Account Number",
-                ph_acc_holder: "Account Holder Name",
-                ph_swift: "Swift Code (Optional)",
+        const clientName = document.getElementById('client-name');
+        const clientCompany = document.getElementById('client-company');
+        const clientEmail = document.getElementById('client-email');
+        const clientPhone = document.getElementById('client-phone');
+        const clientAddress = document.getElementById('client-address');
 
-                // Live Preview EN
-                preview_invoice: "INVOICE",
-                preview_issue: "Issue Date:",
-                preview_due: "Due Date:",
-                preview_status: "Status:",
-                preview_billed_to: "Billed To",
-                preview_th_desc: "Description",
-                preview_th_qty: "Qty",
-                preview_th_price: "Price",
-                preview_th_amount: "Amount",
-                preview_pay_title: "Payment Info",
-                preview_pay_bank: "Bank:",
-                preview_pay_acc: "Account No:",
-                preview_pay_name: "Name:",
-                preview_subtotal: "Subtotal",
-                preview_tax: "Tax",
-                preview_discount: "Discount",
-                preview_total: "Total Due",
-                preview_thank_you: "Thank you for your business! ✨"
-            }
-        };
+        const payBank = document.getElementById('pay-bank');
+        const payAccNum = document.getElementById('pay-acc-number');
+        const payAccHolder = document.getElementById('pay-acc-holder');
+        const paySwift = document.getElementById('pay-swift');
 
-        /* DOKUMENTASI STATE:
-           Kita menyimpan semua data invoice dalam satu objek `state` sentral.
-           Objek ini akan terus diperbarui saat pengguna mengetik, dan akan 
-           disimpan ke `localStorage` agar aman.
-        */
-        let state = {
-            language: 'id', // Default language is Indonesian (id)
-            logoUrl: '',
-            qrisUrl: '',
-            invNum: '',
-            invStatus: 'Unpaid',
-            invDate: '',
-            invDueDate: '',
-            devName: '',
-            devCompany: '',
-            devEmail: '',
-            devWeb: '',
-            clientName: '',
-            clientCompany: '',
-            clientEmail: '',
-            clientPhone: '',
-            clientAddress: '',
-            items: [{ desc: '', qty: 1, price: 0 }], // Minimal 1 item kosong di awal
-            tax: 0,
-            discount: 0,
-            bankName: '',
-            accNumber: '',
-            accHolder: '',
-            swiftCode: ''
-        };
-
-        // --- INISIALISASI & THEME & BAHASA ---
+        // Preview Elements
+        const pvLogoPlaceholder = document.getElementById('pv-logo-placeholder');
+        const pvLogoImg = document.getElementById('pv-logo-img');
+        const pvBillName = document.getElementById('pv-bill-name');
+        const pvBillCompany = document.getElementById('pv-bill-company');
+        const pvBillEmail = document.getElementById('pv-bill-email');
+        const pvBillWeb = document.getElementById('pv-bill-web');
+        const pvInvNum = document.getElementById('pv-inv-num');
+        const pvStatusBadge = document.getElementById('pv-status-badge');
+        const pvClientName = document.getElementById('pv-client-name');
+        const pvClientCompany = document.getElementById('pv-client-company');
+        const pvClientEmail = document.getElementById('pv-client-email');
+        const pvClientPhone = document.getElementById('pv-client-phone');
+        const pvClientAddress = document.getElementById('pv-client-address');
+        const pvIssueDate = document.getElementById('pv-issue-date');
+        const pvDueDate = document.getElementById('pv-due-date');
+        const pvBankName = document.getElementById('pv-bank-name');
+        const pvAccNum = document.getElementById('pv-acc-num');
+        const pvAccName = document.getElementById('pv-acc-name');
+        const pvSwiftRow = document.getElementById('pv-swift-row');
+        const pvSwiftVal = document.getElementById('pv-swift-val');
+        const pvQrisBox = document.getElementById('pv-qris-box');
+        const pvQrisImg = document.getElementById('pv-qris-img');
         
-        function init() {
-            // Cek apakah ada data tersimpan di localStorage
-            const saved = localStorage.getItem('genzInvoiceData');
-            if (saved) {
-                state = JSON.parse(saved);
-                // Menjamin parameter language ada dalam state lama
-                if (!state.language) state.language = 'id';
-            } else {
-                // Set default tanggal hari ini
-                const today = new Date().toISOString().split('T')[0];
-                state.invDate = today;
-                
-                // Auto-generate invoice number format: INV-YYYY-XXXX
-                const year = new Date().getFullYear();
-                const randomNum = Math.floor(1000 + Math.random() * 9000);
-                state.invNum = `INV-${year}-${randomNum}`;
-                state.language = 'id';
-            }
+        // Math and Calculations
+        const mathSubtotal = document.getElementById('math-subtotal');
+        const mathTax = document.getElementById('math-tax');
+        const mathDiscount = document.getElementById('math-discount');
+        const mathGrandtotal = document.getElementById('math-grandtotal');
 
-            // Inisialisasi Tema
-            if (localStorage.getItem('theme') === 'light') {
-                document.documentElement.classList.remove('dark');
-                document.body.classList.remove('gradient-bg-dark');
-                document.body.classList.add('gradient-bg-light');
-            }
+        const pvSubtotal = document.getElementById('pv-subtotal');
+        const pvTax = document.getElementById('pv-tax');
+        const pvDiscount = document.getElementById('pv-discount');
+        const pvGrandtotal = document.getElementById('pv-grandtotal');
 
-            renderFormInputs();
-            renderItemsForm();
-            applyLanguage();
-            updatePreview();
+        // Image Sources Store (for draft saving)
+        let logoBase64 = "";
+        let qrisBase64 = "";
+
+        // Currency Formatter
+        function formatCurrency(amount, currency = 'IDR') {
+            const formatters = {
+                IDR: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }),
+                USD: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
+                MYR: new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', minimumFractionDigits: 2 }),
+                SGD: new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', minimumFractionDigits: 2 }),
+                JPY: new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', minimumFractionDigits: 0 })
+            };
+            return (formatters[currency] || formatters['IDR']).format(amount);
         }
 
-        function toggleTheme() {
-            const html = document.documentElement;
-            const body = document.body;
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                body.classList.remove('gradient-bg-dark');
-                body.classList.add('gradient-bg-light');
+        // Show toast notifications safely
+        function showToast(message, isError = false) {
+            toastMessage.textContent = message;
+            const iconDiv = document.getElementById('toast-icon');
+            if (isError) {
+                iconDiv.className = "flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-red-500 text-white";
+                iconDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                iconDiv.className = "flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-pink-500 text-white";
+                iconDiv.innerHTML = '<i class="fa-solid fa-bell"></i>';
+            }
+            toast.style.transform = 'translateY(0%)';
+            setTimeout(() => {
+                toast.style.transform = 'translateY(-150%)';
+            }, 3000);
+        }
+
+        // Generate Invoice Number
+        function generateInvoiceNumber() {
+            const year = new Date().getFullYear();
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            return `INV-${year}-${rand}`;
+        }
+
+        // Toggle Dark/Light Mode
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                htmlElement.classList.add('light');
+                themeIcon.className = "fa-solid fa-sun text-lg text-amber-500";
                 localStorage.setItem('theme', 'light');
             } else {
-                html.classList.add('dark');
-                body.classList.remove('gradient-bg-light');
-                body.classList.add('gradient-bg-dark');
+                htmlElement.classList.remove('light');
+                htmlElement.classList.add('dark');
+                themeIcon.className = "fa-solid fa-moon text-lg";
                 localStorage.setItem('theme', 'dark');
             }
+        });
+
+        // Load theme preferences
+        if (localStorage.getItem('theme') === 'light') {
+            htmlElement.classList.remove('dark');
+            htmlElement.classList.add('light');
+            themeIcon.className = "fa-solid fa-sun text-lg text-amber-500";
         }
 
-        // --- MANAJEMEN BAHASA (ID/EN) ---
-        function setLanguage(lang) {
-            state.language = lang;
-            applyLanguage();
-            renderItemsForm(); // Rerender items to update placeholders
-            updateData(); // Save state and update live preview
-        }
-
-        function applyLanguage() {
-            const lang = state.language;
-            const dict = translations[lang];
-
-            // 1. Update text nodes with data-i18n
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (dict[key]) {
-                    el.textContent = dict[key];
-                }
-            });
-
-            // 2. Update placeholders with data-i18n-placeholder
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (dict[key]) {
-                    el.placeholder = dict[key];
-                }
-            });
-
-            // 3. Highlight selected language button active style
-            const btnId = document.getElementById('lang-id');
-            const btnEn = document.getElementById('lang-en');
-
-            if (lang === 'id') {
-                btnId.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-purple-600 text-white shadow-sm shadow-purple-500/50";
-                btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-500 dark:text-slate-400 hover:text-purple-500";
-            } else {
-                btnId.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-500 dark:text-slate-400 hover:text-purple-500";
-                btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-purple-600 text-white shadow-sm shadow-purple-500/50";
-            }
-        }
-
-        // --- PENGELOLAAN DATA & FORM ---
-
-        // Memasukkan data dari State ke dalam Input HTML saat pertama dimuat
-        function renderFormInputs() {
-            const fields = ['invNum', 'invStatus', 'invDate', 'invDueDate', 'devName', 'devCompany', 'devEmail', 'devWeb', 'clientName', 'clientCompany', 'clientEmail', 'clientPhone', 'clientAddress', 'bankName', 'accNumber', 'accHolder', 'swiftCode'];
-            
-            fields.forEach(id => {
-                if(document.getElementById(id)) {
-                    document.getElementById(id).value = state[id];
-                }
-            });
-
-            document.getElementById('invTax').value = state.tax;
-            document.getElementById('invDiscount').value = state.discount;
-
-            // Render gambar (Logo & QRIS) jika ada
-            if(state.logoUrl) {
-                document.getElementById('logoPreviewWrap').classList.remove('hidden');
-                document.getElementById('logoPreviewForm').src = state.logoUrl;
-            }
-            if(state.qrisUrl) {
-                document.getElementById('qrisPreviewWrap').classList.remove('hidden');
-                document.getElementById('qrisPreviewForm').src = state.qrisUrl;
-            }
-        }
-
-        // Fungsi ini dipanggil setiap kali ada input yang diketik pengguna
-        function updateData() {
-            // Ambil semua nilai dari form
-            const fields = ['invNum', 'invStatus', 'invDate', 'invDueDate', 'devName', 'devCompany', 'devEmail', 'devWeb', 'clientName', 'clientCompany', 'clientEmail', 'clientPhone', 'clientAddress', 'bankName', 'accNumber', 'accHolder', 'swiftCode'];
-            
-            fields.forEach(id => {
-                state[id] = document.getElementById(id).value;
-            });
-
-            state.tax = parseFloat(document.getElementById('invTax').value) || 0;
-            state.discount = parseFloat(document.getElementById('invDiscount').value) || 0;
-
-            // Simpan ke LocalStorage dan perbarui Preview Live
-            saveData();
-            updatePreview();
-        }
-
-        // --- PENGELOLAAN GAMBAR (Base64) ---
-        
-        // Membaca file gambar yang diupload dan mengubahnya ke Base64 URL
-        function handleImageUpload(event, stateKey) {
-            const file = event.target.files[0];
+        // Logo Upload Handling
+        logoUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
             if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast("Your logo is kinda thicc (Max 2MB)!", true);
+                    return;
+                }
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    state[stateKey] = e.target.result; // Simpan base64 ke state
-                    renderFormInputs(); // Update thumbnail di form
-                    updateData();       // Update ke preview & storage
+                reader.onload = function(event) {
+                    logoBase64 = event.target.result;
+                    displayLogo(logoBase64);
+                    triggerAutoSave();
                 };
                 reader.readAsDataURL(file);
             }
-        }
-
-        // --- PENGELOLAAN ITEM INVOICE (Dinamic Table) ---
-
-        function renderItemsForm() {
-            const container = document.getElementById('itemsContainer');
-            container.innerHTML = ''; // Bersihkan kontainer
-            const placeholderText = translations[state.language].ph_item_desc;
-
-            state.items.forEach((item, index) => {
-                const itemRow = document.createElement('div');
-                itemRow.className = "flex gap-2 items-start";
-                itemRow.innerHTML = `
-                    <div class="flex-1">
-                        <input type="text" placeholder="${placeholderText}" class="input-glass w-full p-2 rounded-lg text-sm mb-2" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)">
-                    </div>
-                    <div class="w-20">
-                        <input type="number" placeholder="Qty" min="1" class="input-glass w-full p-2 rounded-lg text-sm text-center" value="${item.qty}" oninput="updateItem(${index}, 'qty', this.value)">
-                    </div>
-                    <div class="w-32">
-                        <input type="number" placeholder="Price" min="0" class="input-glass w-full p-2 rounded-lg text-sm text-right" value="${item.price}" oninput="updateItem(${index}, 'price', this.value)">
-                    </div>
-                    <button onclick="removeItem(${index})" class="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition" title="Remove Item">
-                        <i class="ph ph-trash text-lg"></i>
-                    </button>
-                `;
-                container.appendChild(itemRow);
-            });
-        }
-
-        function addItem() {
-            state.items.push({ desc: '', qty: 1, price: 0 });
-            renderItemsForm();
-            updateData();
-        }
-
-        function removeItem(index) {
-            state.items.splice(index, 1);
-            if (state.items.length === 0) {
-                state.items.push({ desc: '', qty: 1, price: 0 }); // Sisakan min 1
-            }
-            renderItemsForm();
-            updateData();
-        }
-
-        function updateItem(index, field, value) {
-            if (field === 'desc') state.items[index][field] = value;
-            else state.items[index][field] = parseFloat(value) || 0;
-            updateData();
-        }
-
-        // --- AUTO SAVE ---
-
-        function saveData() {
-            localStorage.setItem('genzInvoiceData', JSON.stringify(state));
-            
-            // Tampilkan tulisan "Draft Auto-Saved" sementara sesuai bahasa aktif
-            const saveLabel = document.getElementById('saveStatus');
-            saveLabel.classList.remove('hidden');
-            setTimeout(() => { saveLabel.classList.add('hidden'); }, 2000);
-        }
-
-        function clearData() {
-            const confirmMsg = state.language === 'id' ? "Apakah kamu yakin ingin mereset semua data draft?" : "Are you sure you want to reset all draft data?";
-            if(confirm(confirmMsg)) {
-                localStorage.removeItem('genzInvoiceData');
-                location.reload();
-            }
-        }
-
-        // --- LIVE PREVIEW RENDERER (TERMASUK TRANSLATED LABELS) ---
-
-        // Fungsi pembantu untuk memformat angka menjadi Rupiah (Bisa disesuaikan ke USD jika mau)
-        const formatMoney = (amount) => {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-        };
-
-        // Fungsi ini menyuntikkan data State ke dalam elemen HTML Preview A4
-        function updatePreview() {
-            const lang = state.language;
-            const dict = translations[lang];
-
-            // 1. Update Preview Static Labels berdasarkan Bahasa Aktif
-            document.getElementById('previewInvLabel').textContent = dict.preview_invoice;
-            document.getElementById('previewLabelIssue').textContent = dict.preview_issue;
-            document.getElementById('previewLabelDue').textContent = dict.preview_due;
-            document.getElementById('previewLabelStatus').textContent = dict.preview_status;
-            document.getElementById('previewLabelBilledTo').textContent = dict.preview_billed_to;
-            
-            document.getElementById('thDesc').textContent = dict.preview_th_desc;
-            document.getElementById('thQty').textContent = dict.preview_th_qty;
-            document.getElementById('thPrice').textContent = dict.preview_th_price;
-            document.getElementById('thAmount').textContent = dict.preview_th_amount;
-
-            document.getElementById('previewPaymentTitle').textContent = dict.preview_pay_title;
-            document.getElementById('previewBankLabel').textContent = dict.preview_pay_bank;
-            document.getElementById('previewAccLabel').textContent = dict.preview_pay_acc;
-            document.getElementById('previewNameLabel').textContent = dict.preview_pay_name;
-
-            document.getElementById('previewLabelSubtotal').textContent = dict.preview_subtotal;
-            document.getElementById('previewLabelTax').innerHTML = `${dict.preview_tax} (<span id="previewTaxLabel">0</span>%)`;
-            document.getElementById('previewLabelDiscount').innerHTML = `${dict.preview_discount} (<span id="previewDiscountLabel">0</span>%)`;
-            document.getElementById('previewLabelTotal').textContent = dict.preview_total;
-            document.getElementById('previewThankYou').textContent = dict.preview_thank_you;
-
-            // 2. Header Info Data
-            document.getElementById('previewDevName').textContent = state.devName || 'Your Name';
-            document.getElementById('previewDevCompany').textContent = state.devCompany || 'Company Name';
-            document.getElementById('previewDevEmail').textContent = state.devEmail || 'email@example.com';
-            document.getElementById('previewDevWeb').textContent = state.devWeb || 'www.example.com';
-            
-            document.getElementById('previewInvNum').textContent = state.invNum || 'INV-XXXX';
-            document.getElementById('previewDate').textContent = state.invDate || '-';
-            document.getElementById('previewDueDate').textContent = state.invDueDate || '-';
-            
-            // Translasi Status di Preview
-            const statusEl = document.getElementById('previewStatus');
-            const statusKey = 'status_preview_' + state.invStatus.toLowerCase();
-            statusEl.textContent = dict[statusKey] || state.invStatus;
-            statusEl.className = state.invStatus === 'Paid' ? 'font-bold text-green-500' : 
-                                 state.invStatus === 'Pending' ? 'font-bold text-yellow-500' : 'font-bold text-red-500';
-
-            // Client Info Data
-            document.getElementById('previewClientName').textContent = state.clientName || 'Client Name';
-            document.getElementById('previewClientCompany').textContent = state.clientCompany || 'Client Company';
-            document.getElementById('previewClientContact').textContent = `${state.clientEmail} ${state.clientPhone ? '| '+state.clientPhone : ''}`;
-            document.getElementById('previewClientAddress').textContent = state.clientAddress || 'Client Address';
-
-            // Payment Info Data
-            document.getElementById('previewBank').textContent = state.bankName || '-';
-            document.getElementById('previewAccNum').textContent = state.accNumber || '-';
-            document.getElementById('previewAccHolder').textContent = state.accHolder || '-';
-            
-            const swiftEl = document.getElementById('previewSwiftWrap');
-            if(state.swiftCode) {
-                swiftEl.classList.remove('hidden');
-                document.getElementById('previewSwift').textContent = state.swiftCode;
-            } else {
-                swiftEl.classList.add('hidden');
-            }
-
-            // Images
-            const logoEl = document.getElementById('previewLogo');
-            if(state.logoUrl) {
-                logoEl.src = state.logoUrl;
-                logoEl.classList.remove('hidden');
-            } else {
-                logoEl.classList.add('hidden');
-            }
-
-            const qrisEl = document.getElementById('previewQris');
-            if(state.qrisUrl) {
-                qrisEl.src = state.qrisUrl;
-                qrisEl.classList.remove('hidden');
-            } else {
-                qrisEl.classList.add('hidden');
-            }
-
-            // Table & Math Calculations
-            const tbody = document.getElementById('previewTableBody');
-            tbody.innerHTML = '';
-            let subtotal = 0;
-
-            state.items.forEach(item => {
-                if(!item.desc && item.price === 0) return; // Skip baris kosong
-                const amount = item.qty * item.price;
-                subtotal += amount;
-                
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-50 last:border-0">
-                        <td class="py-3 pr-2 text-slate-800 font-medium">${item.desc || '-'}</td>
-                        <td class="py-3 px-2 text-center">${item.qty}</td>
-                        <td class="py-3 px-2 text-right">${formatMoney(item.price)}</td>
-                        <td class="py-3 pl-2 text-right font-semibold text-slate-800">${formatMoney(amount)}</td>
-                    </tr>
-                `;
-            });
-
-            const taxAmount = subtotal * (state.tax / 100);
-            const discountAmount = subtotal * (state.discount / 100);
-            const total = subtotal + taxAmount - discountAmount;
-
-            document.getElementById('previewSubtotal').textContent = formatMoney(subtotal);
-            document.getElementById('previewTaxLabel').textContent = state.tax;
-            document.getElementById('previewTaxVal').textContent = formatMoney(taxAmount);
-            document.getElementById('previewDiscountLabel').textContent = state.discount;
-            document.getElementById('previewDiscountVal').textContent = `- ${formatMoney(discountAmount)}`;
-            document.getElementById('previewTotal').textContent = formatMoney(total);
-        }
-
-
-        // --- FITUR EKSPOR ---
-
-        // Konfigurasi standar untuk html2pdf
-        const getPdfOptions = () => ({
-            margin:       0,
-            filename:     `${state.invNum || 'Invoice'}_${state.clientName || 'Client'}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         });
 
-        function exportPDF() {
-            const element = document.getElementById('invoiceDocument');
-            // Menambah kelas sementara untuk memperbaiki scaling saat proses cetak jika layar kecil
-            element.style.transform = "none"; 
-            html2pdf().set(getPdfOptions()).from(element).save().then(() => {
-                console.log("PDF Downloaded!");
-                updatePreview(); // Reset visual scaling ke sediakala
-            });
+        function displayLogo(src) {
+            document.getElementById('logo-preview-placeholder').classList.add('hidden');
+            const previewCont = document.getElementById('logo-preview-container');
+            previewCont.classList.remove('hidden');
+            previewCont.classList.add('flex');
+            document.getElementById('logo-img').src = src;
+
+            // Update Preview A4
+            pvLogoPlaceholder.classList.add('hidden');
+            pvLogoImg.classList.remove('hidden');
+            pvLogoImg.src = src;
         }
 
-        function exportPNG() {
-            const element = document.getElementById('invoiceDocument');
-            html2pdf().set(getPdfOptions()).from(element).outputImg('datauristring').then(function (pdfAsString) {
-                const link = document.createElement('a');
-                link.download = `${state.invNum || 'Invoice'}.png`;
-                link.href = pdfAsString;
-                link.click();
-            });
+        document.getElementById('remove-logo').addEventListener('click', function(e) {
+            e.stopPropagation();
+            logoBase64 = "";
+            logoUpload.value = "";
+            document.getElementById('logo-preview-placeholder').classList.remove('hidden');
+            const previewCont = document.getElementById('logo-preview-container');
+            previewCont.classList.add('hidden');
+            previewCont.classList.remove('flex');
+            document.getElementById('logo-img').src = "";
+
+            pvLogoPlaceholder.classList.remove('hidden');
+            pvLogoImg.classList.add('hidden');
+            pvLogoImg.src = "";
+            triggerAutoSave();
+        });
+
+        // QRIS Upload Handling
+        qrisUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast("This QRIS is too heavy (Max 2MB)!", true);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    qrisBase64 = event.target.result;
+                    displayQRIS(qrisBase64);
+                    triggerAutoSave();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function displayQRIS(src) {
+            document.getElementById('qris-preview-placeholder').classList.add('hidden');
+            const previewCont = document.getElementById('qris-preview-container');
+            previewCont.classList.remove('hidden');
+            previewCont.classList.add('flex');
+            document.getElementById('qris-img').src = src;
+
+            // Update Preview A4
+            pvQrisBox.classList.remove('hidden');
+            pvQrisBox.classList.add('flex');
+            pvQrisImg.src = src;
         }
 
-        function exportExcel() {
-            // Membuat struktur tabel sederhana untuk Excel menggunakan SheetJS
-            const isIndo = state.language === 'id';
-            const ws_data = [
-                [isIndo ? "DATA INVOICE" : "INVOICE DATA", "", "", ""],
-                [isIndo ? "Nomor Invoice" : "Invoice Number", state.invNum],
-                [isIndo ? "Tanggal Terbit" : "Issue Date", state.invDate],
-                [isIndo ? "Tenggat Waktu" : "Due Date", state.invDueDate],
-                ["Status", state.invStatus],
-                ["", "", "", ""],
-                [isIndo ? "DITAGIH OLEH" : "BILLED FROM", state.devName, isIndo ? "DITAGIH KE" : "BILLED TO", state.clientName],
-                [isIndo ? "Perusahaan" : "Company", state.devCompany, isIndo ? "Perusahaan" : "Company", state.clientCompany],
-                ["Email", state.devEmail, "Email", state.clientEmail],
-                ["", "", "", ""],
-                [isIndo ? "DAFTAR ITEM" : "ITEMS", isIndo ? "JUMLAH" : "QTY", isIndo ? "HARGA" : "PRICE", isIndo ? "TOTAL" : "AMOUNT"]
+        document.getElementById('remove-qris').addEventListener('click', function(e) {
+            e.stopPropagation();
+            qrisBase64 = "";
+            qrisUpload.value = "";
+            document.getElementById('qris-preview-placeholder').classList.remove('hidden');
+            const previewCont = document.getElementById('qris-preview-container');
+            previewCont.classList.add('hidden');
+            previewCont.classList.remove('flex');
+            document.getElementById('qris-img').src = "";
+
+            pvQrisBox.classList.add('hidden');
+            pvQrisBox.classList.remove('flex');
+            pvQrisImg.src = "";
+            triggerAutoSave();
+        });
+
+        // Initialize Dates with default values
+        function setInitialDates() {
+            const today = new Date();
+            const nextTwoWeeks = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+            
+            invIssueDate.value = today.toISOString().split('T')[0];
+            invDueDate.value = nextTwoWeeks.toISOString().split('T')[0];
+        }
+
+        // Add New Item Row
+        function addItemRow(desc = "", qty = 1, price = 0, tax = 0, discount = 0) {
+            const id = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            const rowHTML = `
+                <tr id="${id}" class="group/row transition-all hover:bg-white/5 dark:hover:bg-white/5 light:hover:bg-black/5">
+                    <td class="py-3 pr-2">
+                        <input type="text" class="item-desc w-full glass-input rounded-xl px-3 py-1.5 text-xs font-semibold" placeholder="E.g. Creative Brand Strategy Layout" value="${desc}">
+                    </td>
+                    <td class="py-3 px-1 text-center">
+                        <input type="number" min="1" class="item-qty w-14 glass-input rounded-xl px-1 py-1.5 text-xs text-center font-bold" value="${qty}">
+                    </td>
+                    <td class="py-3 px-1">
+                        <input type="number" min="0" step="any" class="item-price w-28 glass-input rounded-xl px-2 py-1.5 text-xs font-semibold" placeholder="0" value="${price}">
+                    </td>
+                    <td class="py-3 px-1">
+                        <input type="number" min="0" max="100" class="item-tax w-16 glass-input rounded-xl px-2 py-1.5 text-xs font-semibold" placeholder="0" value="${tax}">
+                    </td>
+                    <td class="py-3 px-1">
+                        <input type="number" min="0" max="100" class="item-discount w-16 glass-input rounded-xl px-2 py-1.5 text-xs font-semibold" placeholder="0" value="${discount}">
+                    </td>
+                    <td class="py-3 px-2 text-right font-extrabold text-xs item-total-val text-slate-200 dark:text-slate-200 light:text-slate-800">
+                        0.00
+                    </td>
+                    <td class="py-3 text-center">
+                        <button type="button" class="btn-delete-row text-red-500 hover:text-red-400 p-1.5 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover/row:opacity-100 focus:opacity-100">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            itemsTbody.insertAdjacentHTML('beforeend', rowHTML);
+            
+            // Add listeners to new inputs
+            const row = document.getElementById(id);
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    calculateInvoice();
+                    triggerAutoSave();
+                });
+            });
+
+            // Delete action
+            row.querySelector('.btn-delete-row').addEventListener('click', () => {
+                row.remove();
+                calculateInvoice();
+                triggerAutoSave();
+            });
+
+            calculateInvoice();
+        }
+
+        // Calculate All Financials
+        function calculateInvoice() {
+            const currency = currencySelect.value;
+            const rows = itemsTbody.querySelectorAll('tr');
+            
+            let totalSub = 0;
+            let totalTax = 0;
+            let totalDisc = 0;
+
+            const pvListContainer = document.getElementById('pv-items-list');
+            pvListContainer.innerHTML = '';
+
+            rows.forEach(row => {
+                const desc = row.querySelector('.item-desc').value || 'Slay Project Item';
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const taxPercent = parseFloat(row.querySelector('.item-tax').value) || 0;
+                const discPercent = parseFloat(row.querySelector('.item-discount').value) || 0;
+
+                const baseAmount = qty * price;
+                const discAmount = baseAmount * (discPercent / 100);
+                const taxAmount = (baseAmount - discAmount) * (taxPercent / 100);
+                const finalRowAmount = baseAmount - discAmount + taxAmount;
+
+                // Update Row Total in Input Editor
+                row.querySelector('.item-total-val').textContent = formatCurrency(finalRowAmount, currency);
+
+                // Update Totals
+                totalSub += baseAmount;
+                totalDisc += discAmount;
+                totalTax += taxAmount;
+
+                // Add to Preview Panel List
+                const pvRow = `
+                    <tr class="border-b border-slate-100">
+                        <td class="py-2.5 font-bold text-slate-800">${desc}</td>
+                        <td class="py-2.5 text-center font-semibold text-slate-600">${qty}</td>
+                        <td class="py-2.5 text-right font-medium text-slate-600">${formatCurrency(price, currency)}</td>
+                        <td class="py-2.5 text-center font-medium text-slate-500">${taxPercent > 0 ? taxPercent + '%' : '-'}</td>
+                        <td class="py-2.5 text-center font-medium text-emerald-600">${discPercent > 0 ? discPercent + '%' : '-'}</td>
+                        <td class="py-2.5 text-right font-extrabold text-slate-900">${formatCurrency(finalRowAmount, currency)}</td>
+                    </tr>
+                `;
+                pvListContainer.insertAdjacentHTML('beforeend', pvRow);
+            });
+
+            const grandTotal = totalSub - totalDisc + totalTax;
+
+            // Update Math Section (Editor)
+            mathSubtotal.textContent = formatCurrency(totalSub, currency);
+            mathTax.textContent = "+ " + formatCurrency(totalTax, currency);
+            mathDiscount.textContent = "- " + formatCurrency(totalDisc, currency);
+            mathGrandtotal.textContent = formatCurrency(grandTotal, currency);
+
+            // Update Preview Panel Totals
+            pvSubtotal.textContent = formatCurrency(totalSub, currency);
+            pvTax.textContent = formatCurrency(totalTax, currency);
+            pvDiscount.textContent = formatCurrency(totalDisc, currency);
+            pvGrandtotal.textContent = formatCurrency(grandTotal, currency);
+        }
+
+        // Real-Time Syncing Editor to Preview
+        function syncRealtime() {
+            // Header / Billed By
+            pvBillName.textContent = billByName.value || 'KENJI SANTOSO';
+            pvBillCompany.textContent = billByCompany.value || 'Slay Creative Co.';
+            pvBillEmail.textContent = billByEmail.value || 'kenji@slaycreative.space';
+            pvBillWeb.textContent = billByWeb.value || 'www.slaycreative.space';
+
+            // Inv Info
+            pvInvNum.textContent = invNum.value || 'INV-2026-0001';
+            
+            // Status Styling
+            const status = invStatus.value;
+            pvStatusBadge.className = "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ";
+            if (status === 'paid') {
+                pvStatusBadge.classList.add('bg-emerald-100', 'text-emerald-700');
+                pvStatusBadge.textContent = '🟢 PAID (VALID SLAY)';
+            } else if (status === 'pending') {
+                pvStatusBadge.classList.add('bg-amber-100', 'text-amber-700');
+                pvStatusBadge.textContent = '🟡 PENDING (WAIT A SEC)';
+            } else if (status === 'overdue') {
+                pvStatusBadge.classList.add('bg-rose-100', 'text-rose-700');
+                pvStatusBadge.textContent = '💀 OVERDUE (FRFR?)';
+            } else {
+                pvStatusBadge.classList.add('bg-rose-100', 'text-rose-600');
+                pvStatusBadge.textContent = '🔴 UNPAID (NO CAP)';
+            }
+
+            // Dates
+            pvIssueDate.textContent = invIssueDate.value || '-';
+            pvDueDate.textContent = invDueDate.value || '-';
+
+            // Client Info
+            pvClientName.textContent = clientName.value || 'John Doe';
+            pvClientCompany.textContent = clientCompany.value || 'Big Tech Corp';
+            pvClientEmail.textContent = clientEmail.value || 'john@bigtech.com';
+            pvClientPhone.textContent = clientPhone.value || '';
+            pvClientAddress.textContent = clientAddress.value || 'Silicon Valley Suite, US';
+
+            // Banking Details
+            pvBankName.textContent = payBank.value || '-';
+            pvAccNum.textContent = payAccNum.value || '-';
+            pvAccName.textContent = payAccHolder.value || '-';
+            
+            if (paySwift.value) {
+                pvSwiftRow.classList.remove('hidden');
+                pvSwiftVal.textContent = paySwift.value;
+            } else {
+                pvSwiftRow.classList.add('hidden');
+            }
+        }
+
+        // Regeneration Button Trigger
+        btnRegenInv.addEventListener('click', () => {
+            invNum.value = generateInvoiceNumber();
+            syncRealtime();
+            triggerAutoSave();
+            showToast("Created a new slay invoice number! 💅");
+        });
+
+        // Initialize App Inputs / Auto-sync
+        const allInputs = [
+            invNum, invStatus, invIssueDate, invDueDate,
+            billByName, billByCompany, billByEmail, billByWeb,
+            clientName, clientCompany, clientEmail, clientPhone, clientAddress,
+            payBank, payAccNum, payAccHolder, paySwift, currencySelect
+        ];
+
+        allInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                syncRealtime();
+                calculateInvoice();
+                triggerAutoSave();
+            });
+        });
+
+        // Add Item Initial Event
+        btnAddItem.addEventListener('click', () => {
+            addItemRow();
+        });
+
+        // Auto Save Draft logic
+        let autoSaveTimeout;
+        function triggerAutoSave() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveDraft();
+            }, 1000); // 1-second debounce
+        }
+
+        function saveDraft() {
+            const items = [];
+            const rows = itemsTbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                items.push({
+                    desc: row.querySelector('.item-desc').value,
+                    qty: row.querySelector('.item-qty').value,
+                    price: row.querySelector('.item-price').value,
+                    tax: row.querySelector('.item-tax').value,
+                    discount: row.querySelector('.item-discount').value
+                });
+            });
+
+            const draft = {
+                invNum: invNum.value,
+                invStatus: invStatus.value,
+                invIssueDate: invIssueDate.value,
+                invDueDate: invDueDate.value,
+                billByName: billByName.value,
+                billByCompany: billByCompany.value,
+                billByEmail: billByEmail.value,
+                billByWeb: billByWeb.value,
+                clientName: clientName.value,
+                clientCompany: clientCompany.value,
+                clientEmail: clientEmail.value,
+                clientPhone: clientPhone.value,
+                clientAddress: clientAddress.value,
+                payBank: payBank.value,
+                payAccNum: payAccNum.value,
+                payAccHolder: payAccHolder.value,
+                paySwift: paySwift.value,
+                currency: currencySelect.value,
+                items: items,
+                logoBase64: logoBase64,
+                qrisBase64: qrisBase64
+            };
+
+            localStorage.setItem('slay_invoice_draft', JSON.stringify(draft));
+            showToast("Draft Auto-Saved Successfully! ✨");
+        }
+
+        function loadDraft() {
+            const rawDraft = localStorage.getItem('slay_invoice_draft');
+            if (rawDraft) {
+                try {
+                    const draft = JSON.parse(rawDraft);
+                    
+                    invNum.value = draft.invNum || generateInvoiceNumber();
+                    invStatus.value = draft.invStatus || 'unpaid';
+                    invIssueDate.value = draft.invIssueDate || '';
+                    invDueDate.value = draft.invDueDate || '';
+                    
+                    billByName.value = draft.billByName || '';
+                    billByCompany.value = draft.billByCompany || '';
+                    billByEmail.value = draft.billByEmail || '';
+                    billByWeb.value = draft.billByWeb || '';
+
+                    clientName.value = draft.clientName || '';
+                    clientCompany.value = draft.clientCompany || '';
+                    clientEmail.value = draft.clientEmail || '';
+                    clientPhone.value = draft.clientPhone || '';
+                    clientAddress.value = draft.clientAddress || '';
+
+                    payBank.value = draft.payBank || '';
+                    payAccNum.value = draft.payAccNum || '';
+                    payAccHolder.value = draft.payAccHolder || '';
+                    paySwift.value = draft.paySwift || '';
+
+                    currencySelect.value = draft.currency || 'IDR';
+
+                    // Rebuild Logo
+                    if (draft.logoBase64) {
+                        logoBase64 = draft.logoBase64;
+                        displayLogo(logoBase64);
+                    }
+
+                    // Rebuild QRIS
+                    if (draft.qrisBase64) {
+                        qrisBase64 = draft.qrisBase64;
+                        displayQRIS(qrisBase64);
+                    }
+
+                    // Rebuild Item Rows
+                    itemsTbody.innerHTML = '';
+                    if (draft.items && draft.items.length > 0) {
+                        draft.items.forEach(item => {
+                            addItemRow(item.desc, item.qty, item.price, item.tax, item.discount);
+                        });
+                    } else {
+                        addItemRow("UI/UX Mobile Design Slay Pack", 1, 15000000, 11, 5);
+                    }
+
+                    syncRealtime();
+                    calculateInvoice();
+
+                } catch (e) {
+                    console.error("Failed loading draft", e);
+                    resetAll();
+                }
+            } else {
+                // Default Setup
+                invNum.value = generateInvoiceNumber();
+                setInitialDates();
+                addItemRow("UI/UX Mobile Design Slay Pack", 1, 15000000, 11, 5);
+                syncRealtime();
+                calculateInvoice();
+            }
+        }
+
+        // Reset/Clear everything
+        function resetAll() {
+            localStorage.removeItem('slay_invoice_draft');
+            
+            // Clear inputs
+            invNum.value = generateInvoiceNumber();
+            setInitialDates();
+            
+            billByName.value = '';
+            billByCompany.value = '';
+            billByEmail.value = '';
+            billByWeb.value = '';
+
+            clientName.value = '';
+            clientCompany.value = '';
+            clientEmail.value = '';
+            clientPhone.value = '';
+            clientAddress.value = '';
+
+            payBank.value = '';
+            payAccNum.value = '';
+            payAccHolder.value = '';
+            paySwift.value = '';
+
+            currencySelect.value = 'IDR';
+
+            // Clear Images
+            logoBase64 = "";
+            logoUpload.value = "";
+            document.getElementById('logo-preview-placeholder').classList.remove('hidden');
+            document.getElementById('logo-preview-container').classList.add('hidden');
+            pvLogoPlaceholder.classList.remove('hidden');
+            pvLogoImg.classList.add('hidden');
+
+            qrisBase64 = "";
+            qrisUpload.value = "";
+            document.getElementById('qris-preview-placeholder').classList.remove('hidden');
+            document.getElementById('qris-preview-container').classList.add('hidden');
+            pvQrisBox.classList.add('hidden');
+            pvQrisBox.classList.remove('flex');
+
+            itemsTbody.innerHTML = '';
+            addItemRow("UI/UX Mobile Design Slay Pack", 1, 15000000, 11, 5);
+            
+            syncRealtime();
+            calculateInvoice();
+            showToast("Draft wiped clean. Fresh canvas, let's slay! 🚀");
+        }
+
+        btnReset.addEventListener('click', resetAll);
+
+        // ================= EXPORT PROCESSES =================
+
+        // PDF Generation
+        document.getElementById('btn-export-pdf').addEventListener('click', () => {
+            const element = document.getElementById('invoice-preview');
+            const fileNo = invNum.value || 'INV_UNKNOWN';
+            
+            // Setting options
+            const opt = {
+                margin:       0.2,
+                filename:     `Slay_${fileNo}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 3, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            showToast("Generating high-quality PDF... Please wait.");
+            
+            // Generate
+            html2pdf().from(element).set(opt).save()
+                .then(() => {
+                    showToast("PDF Downloaded successfully! Go get paid! 💸");
+                })
+                .catch(err => {
+                    showToast("PDF failed. Something crashed inside.", true);
+                    console.error(err);
+                });
+        });
+
+        // Excel Sheet Generation
+        document.getElementById('btn-export-excel').addEventListener('click', () => {
+            const currency = currencySelect.value;
+            const fileNo = invNum.value || 'INV_UNKNOWN';
+
+            // Assemble row data
+            const rows = itemsTbody.querySelectorAll('tr');
+            const sheetData = [
+                ["SLAYINVOICE EXPORT DATA", "", "", "", "", ""],
+                ["Invoice #", fileNo, "", "", "", ""],
+                ["Issue Date", invIssueDate.value, "", "", "", ""],
+                ["Due Date", invDueDate.value, "", "", "", ""],
+                ["Status", invStatus.value.toUpperCase(), "", "", "", ""],
+                [],
+                ["Billed By", billByName.value || "Anonymous", "Company", billByCompany.value || ""],
+                ["Client Billed", clientName.value || "Client", "Client Company", clientCompany.value || ""],
+                [],
+                ["Item Description", "Qty", "Price Rate", "Tax %", "Discount %", "Total Row Amount"]
             ];
 
-            let subtotal = 0;
-            state.items.forEach(item => {
-                const amt = item.qty * item.price;
-                subtotal += amt;
-                ws_data.push([item.desc, item.qty, item.price, amt]);
+            rows.forEach(row => {
+                const desc = row.querySelector('.item-desc').value || 'Item Description';
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const taxPercent = parseFloat(row.querySelector('.item-tax').value) || 0;
+                const discPercent = parseFloat(row.querySelector('.item-discount').value) || 0;
+
+                const baseAmount = qty * price;
+                const discAmount = baseAmount * (discPercent / 100);
+                const taxAmount = (baseAmount - discAmount) * (taxPercent / 100);
+                const finalRowAmount = baseAmount - discAmount + taxAmount;
+
+                sheetData.push([desc, qty, price, taxPercent, discPercent, finalRowAmount]);
             });
 
-            const taxAmt = subtotal * (state.tax/100);
-            const discAmt = subtotal * (state.discount/100);
-            const total = subtotal + taxAmt - discAmt;
+            // Calculate overall math for excel summary
+            let totalSub = 0;
+            let totalTax = 0;
+            let totalDisc = 0;
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const taxPercent = parseFloat(row.querySelector('.item-tax').value) || 0;
+                const discPercent = parseFloat(row.querySelector('.item-discount').value) || 0;
+                const baseAmount = qty * price;
+                const discAmount = baseAmount * (discPercent / 100);
+                totalSub += baseAmount;
+                totalDisc += discAmount;
+                totalTax += (baseAmount - discAmount) * (taxPercent / 100);
+            });
+            const grandTotal = totalSub - totalDisc + totalTax;
 
-            ws_data.push(["", "", "", ""]);
-            ws_data.push(["", "", "Subtotal", subtotal]);
-            ws_data.push(["", "", `${isIndo ? 'Pajak' : 'Tax'} (${state.tax}%)`, taxAmt]);
-            ws_data.push(["", "", `${isIndo ? 'Diskon' : 'Discount'} (${state.discount}%)`, -discAmt]);
-            ws_data.push(["", "", isIndo ? "TOTAL TAGIHAN" : "TOTAL DUE", total]);
+            sheetData.push([]);
+            sheetData.push(["", "", "", "", "Subtotal", totalSub]);
+            sheetData.push(["", "", "", "", "Tax", totalTax]);
+            sheetData.push(["", "", "", "", "Discount", totalDisc]);
+            sheetData.push(["", "", "", "", "Grand Total", grandTotal]);
+            sheetData.push([]);
+            sheetData.push(["Banking details:", payBank.value || "", "Acc Holder:", payAccHolder.value || "", "Acc No:", payAccNum.value || ""]);
 
-            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            // Create XLSX file
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Invoice");
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            XLSX.utils.book_append_sheet(wb, ws, "Invoice Data");
             
-            XLSX.writeFile(wb, `${state.invNum || 'Invoice'}.xlsx`);
-        }
+            // Save the sheet
+            XLSX.writeFile(wb, `Slay_${fileNo}.xlsx`);
+            showToast("Spreadsheet generated! Check your downloads 📁");
+        });
 
-        // Panggil fungsi inisialisasi saat window selesai dimuat
-        window.onload = init;
+        // PNG/Image Generation
+        document.getElementById('btn-export-png').addEventListener('click', () => {
+            const previewEl = document.getElementById('invoice-preview');
+            const fileNo = invNum.value || 'INV_UNKNOWN';
 
+            showToast("Capturing Slay Invoice Preview... Please wait.");
+
+            html2canvas(previewEl, {
+                scale: 3, // Premium ultra quality
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: "#ffffff"
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `Slay_${fileNo}.png`;
+                link.href = imgData;
+                link.click();
+                showToast("PNG Image downloaded successfully! 📸");
+            }).catch(err => {
+                showToast("Failed capturing image.", true);
+                console.error(err);
+            });
+        });
+
+        // Initial trigger to load application State
+        window.addEventListener('load', () => {
+            loadDraft();
+        });
     </script>
 </body>
 </html>
