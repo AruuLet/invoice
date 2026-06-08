@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator | By Aruu</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans for that modern tech vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#a855f7', // Purple 500
+                            dark: '#c084fc',  // Purple 400
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Libraries for Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* CSS DOKUMENTASI: 
+           1. gradient-bg: Membuat animasi latar belakang yang bergerak perlahan.
+           2. glass: Efek kaca (Glassmorphism) yang transparan dan blur.
+           3. scrollbar: Mempercantik scrollbar agar terlihat modern.
+        */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Animated Gradient Background */
+        .gradient-bg-dark {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #172554);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        .gradient-bg-light {
+            background: linear-gradient(-45deg, #f8fafc, #e2e8f0, #e0e7ff, #f3e8ff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        /* Input Styles Custom */
+        .input-glass {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        .dark .input-glass {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f8fafc;
+        }
+        .input-glass:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+        /* A4 Professional Preview Wrapper */
+        .a4-wrapper {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            color: black;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            margin: 0 auto;
+            position: relative;
+            transform-origin: top center;
+        }
+
+        /* Make preview scale down on smaller screens */
+        @media (max-width: 1280px) {
+            .preview-container { zoom: 0.8; }
+        }
+        @media (max-width: 1024px) {
+            .preview-container { zoom: 1; overflow-x: auto; }
+        }
+        
+        /* Hide UI elements during PDF generation */
+        .html2pdf__container { background: white !important; }
+    </style>
+</head>
+<body class="gradient-bg-dark min-h-screen text-slate-800 dark:text-slate-200 transition-colors duration-300">
+
+    <!-- Navbar / Header -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 mb-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-receipt text-3xl text-purple-500"></i>
+                <h1 class="font-bold text-xl tracking-tight">Invoice<span class="text-purple-500">Generator</span></h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Status Saved -->
+                <span id="saveStatus" class="text-xs text-green-500 font-medium hidden">
+                    <i class="ph ph-check-circle inline align-middle"></i> <span data-i18n="save_status">Draft Auto-Saved</span>
+                </span>
+                
+                <!-- Language Switcher (Sleek pill control) -->
+                <div class="flex items-center gap-1 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-300/30">
+                    <button onclick="setLanguage('id')" id="lang-id" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition">ID</button>
+                    <button onclick="setLanguage('en')" id="lang-en" class="px-2.5 py-1 rounded-lg text-xs font-extrabold transition">EN</button>
+                </div>
+
+                <!-- Dark/Light Mode -->
+                <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <i class="ph ph-moon text-xl dark:hidden block"></i>
+                    <i class="ph ph-sun text-xl hidden dark:block text-yellow-400"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- LEFT COLUMN: EDITOR FORM (Glassmorphism UI) -->
+        <div class="lg:col-span-6 xl:col-span-5 space-y-6">
+            
+            <!-- Export & Action Buttons -->
+            <div class="glass rounded-2xl p-4 flex flex-wrap gap-2 justify-center">
+                <button onclick="exportPDF()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-xl font-semibold transition shadow-lg shadow-purple-500/30 flex justify-center items-center gap-2">
+                    <i class="ph ph-file-pdf"></i> PDF
+                </button>
+                <button onclick="exportPNG()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl font-semibold transition shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2">
+                    <i class="ph ph-image"></i> PNG
+                </button>
+                <button onclick="exportExcel()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl font-semibold transition shadow-lg shadow-green-500/30 flex justify-center items-center gap-2">
+                    <i class="ph ph-file-xls"></i> Excel
+                </button>
+                <button onclick="clearData()" class="w-full mt-2 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 py-2 rounded-xl font-medium hover:bg-red-200 dark:hover:bg-red-800/40 transition">
+                    <i class="ph ph-trash"></i> <span data-i18n="btn_reset">Reset Draft</span>
+                </button>
+            </div>
+
+            <!-- Invoice Information -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="ph ph-info"></i> <span data-i18n="section_info">Invoice Info</span>
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 flex items-center gap-4">
+                        <label class="cursor-pointer bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 w-full text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                            <i class="ph ph-upload-simple text-2xl mb-1 text-purple-500"></i>
+                            <p class="text-sm font-medium" data-i18n="label_logo">Upload Logo</p>
+                            <input type="file" id="logoUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'logoUrl')">
+                        </label>
+                        <div id="logoPreviewWrap" class="hidden h-16 w-16 rounded-xl border overflow-hidden shrink-0">
+                            <img id="logoPreviewForm" src="" alt="Logo" class="w-full h-full object-contain bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_inv_num">Invoice Number</label>
+                        <input type="text" id="invNum" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="INV-2026-001" oninput="updateData()">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_status">Status</label>
+                        <select id="invStatus" class="input-glass w-full p-2.5 rounded-xl text-sm" onchange="updateData()">
+                            <option value="Unpaid" data-i18n="status_unpaid">🔴 Belum Bayar</option>
+                            <option value="Paid" data-i18n="status_paid">🟢 Lunas</option>
+                            <option value="Pending" data-i18n="status_pending">🟡 Tertunda</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_issue_date">Issue Date</label>
+                        <input type="date" id="invDate" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400" data-i18n="label_due_date">Due Date</label>
+                        <input type="date" id="invDueDate" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billed By (Freelancer) -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="ph ph-user-circle"></i> <span data-i18n="section_billed_by">Billed By (You)</span>
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="devName" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Your Name / Alias" data-i18n-placeholder="ph_dev_name" oninput="updateData()">
+                    <input type="text" id="devCompany" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Company / Studio Name" data-i18n-placeholder="ph_dev_company" oninput="updateData()">
+                    <input type="email" id="devEmail" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Email Address" data-i18n-placeholder="ph_dev_email" oninput="updateData()">
+                    <input type="text" id="devWeb" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Website / Portfolio URL" data-i18n-placeholder="ph_dev_web" oninput="updateData()">
+                </div>
+            </div>
+
+            <!-- Billed To (Client) -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="ph ph-buildings"></i> <span data-i18n="section_billed_to">Billed To (Client)</span>
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="clientName" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Name" data-i18n-placeholder="ph_client_name" oninput="updateData()">
+                    <input type="text" id="clientCompany" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Company" data-i18n-placeholder="ph_client_company" oninput="updateData()">
+                    <input type="email" id="clientEmail" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Email" data-i18n-placeholder="ph_client_email" oninput="updateData()">
+                    <input type="text" id="clientPhone" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Phone" data-i18n-placeholder="ph_client_phone" oninput="updateData()">
+                    <textarea id="clientAddress" rows="2" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Client Address" data-i18n-placeholder="ph_client_address" oninput="updateData()"></textarea>
+                </div>
+            </div>
+
+            <!-- Invoice Items -->
+            <div class="glass rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold flex items-center gap-2">
+                        <i class="ph ph-list-dashes"></i> <span data-i18n="section_items">Items</span>
+                    </h2>
+                    <button onclick="addItem()" class="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-purple-200 dark:hover:bg-purple-800/40 transition" data-i18n="btn_add_item">
+                        + Add Item
+                    </button>
+                </div>
+                
+                <!-- Dynamic Items Container -->
+                <div id="itemsContainer" class="space-y-3 mb-4">
+                    <!-- Items injected by JS -->
+                </div>
+
+                <!-- Modifiers (Tax & Discount) -->
+                <div class="grid grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500" data-i18n="label_tax">Tax (%)</label>
+                        <input type="number" id="invTax" value="0" min="0" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500" data-i18n="label_discount">Discount (%)</label>
+                        <input type="number" id="invDiscount" value="0" min="0" class="input-glass w-full p-2.5 rounded-xl text-sm" oninput="updateData()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="ph ph-bank"></i> <span data-i18n="section_payment">Payment Info</span>
+                </h2>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <input type="text" id="bankName" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Bank Name" data-i18n-placeholder="ph_bank_name" oninput="updateData()">
+                    <input type="text" id="accNumber" class="input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Account Number" data-i18n-placeholder="ph_acc_num" oninput="updateData()">
+                    <input type="text" id="accHolder" class="col-span-2 input-glass w-full p-2.5 rounded-xl text-sm" placeholder="Account Holder Name" data-i18n-placeholder="ph_acc_holder" oninput="updateData()">
+                </div>
+                <!-- QRIS Upload -->
+                <div class="flex items-center gap-4">
+                    <label class="cursor-pointer bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 w-full text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        <i class="ph ph-qr-code text-2xl mb-1 text-blue-500"></i>
+                        <p class="text-sm font-medium" data-i18n="label_qris">Upload QRIS / QR Payment</p>
+                        <input type="file" id="qrisUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'qrisUrl')">
+                    </label>
+                    <div id="qrisPreviewWrap" class="hidden h-16 w-16 rounded-xl border overflow-hidden shrink-0 bg-white">
+                        <img id="qrisPreviewForm" src="" alt="QRIS" class="w-full h-full object-contain">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: LIVE PREVIEW -->
+        <div class="lg:col-span-6 xl:col-span-7 preview-container flex justify-center lg:justify-start lg:sticky lg:top-24 h-max">
+            
+            <!-- Professional A4 Document Preview -->
+            <div id="invoiceDocument" class="a4-wrapper p-10 font-sans">
+                <!-- Header -->
+                <div class="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
+                    <div class="w-1/2">
+                        <img id="previewLogo" src="" alt="Logo" class="max-h-16 mb-4 hidden">
+                        <h2 id="previewDevName" class="text-2xl font-bold text-slate-800">Your Name</h2>
+                        <p id="previewDevCompany" class="text-sm text-slate-500 mt-1">Company Name</p>
+                        <p id="previewDevEmail" class="text-sm text-slate-500">email@example.com</p>
+                        <p id="previewDevWeb" class="text-sm text-slate-500">www.example.com</p>
+                    </div>
+                    <div class="w-1/2 text-right">
+                        <h1 class="text-4xl font-extrabold text-slate-200 tracking-wider uppercase mb-2" id="previewInvLabel">INVOICE</h1>
+                        <p class="text-lg font-bold text-slate-800" id="previewInvNum">INV-XXXX</p>
+                        <div class="mt-4 flex flex-col items-end gap-1 text-sm text-slate-600">
+                            <div class="flex justify-between w-48">
+                                <span class="font-semibold" id="previewLabelIssue">Tanggal Terbit:</span>
+                                <span id="previewDate">-</span>
+                            </div>
+                            <div class="flex justify-between w-48">
+                                <span class="font-semibold" id="previewLabelDue">Tenggat Waktu:</span>
+                                <span id="previewDueDate">-</span>
+                            </div>
+                            <div class="flex justify-between w-48 mt-2 pt-2 border-t border-slate-100">
+                                <span class="font-semibold" id="previewLabelStatus">Status:</span>
+                                <span id="previewStatus" class="font-bold text-red-500">Unpaid</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billed To -->
+                <div class="mb-8">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2" id="previewLabelBilledTo">Ditagih Ke</h3>
+                    <h4 id="previewClientName" class="text-lg font-bold text-slate-800">Client Name</h4>
+                    <p id="previewClientCompany" class="text-sm text-slate-600 font-medium">Company</p>
+                    <p id="previewClientAddress" class="text-sm text-slate-500 whitespace-pre-line mt-1">Address</p>
+                    <p id="previewClientContact" class="text-sm text-slate-500 mt-1">Email / Phone</p>
+                </div>
+
+                <!-- Table Items -->
+                <div class="min-h-[250px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-y-2 border-slate-100">
+                                <th class="py-3 text-sm font-bold text-slate-700 w-1/2" id="thDesc">Deskripsi</th>
+                                <th class="py-3 text-sm font-bold text-slate-700 text-center" id="thQty">Jml</th>
+                                <th class="py-3 text-sm font-bold text-slate-700 text-right" id="thPrice">Harga</th>
+                                <th class="py-3 text-sm font-bold text-slate-700 text-right" id="thAmount">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTableBody" class="text-sm text-slate-600">
+                            <!-- Injected rows go here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totals & Payment Grid -->
+                <div class="grid grid-cols-2 gap-8 mt-8">
+                    <!-- Payment Info -->
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3" id="previewPaymentTitle">Info Pembayaran</h3>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm">
+                            <p class="mb-1"><span class="font-semibold text-slate-700" id="previewBankLabel">Bank:</span> <span id="previewBank">-</span></p>
+                            <p class="mb-1"><span class="font-semibold text-slate-700" id="previewAccLabel">No. Rekening:</span> <span id="previewAccNum">-</span></p>
+                            <p class="mb-1"><span class="font-semibold text-slate-700" id="previewNameLabel">Nama:</span> <span id="previewAccHolder">-</span></p>
+                            <p id="previewSwiftWrap" class="mb-3 hidden"><span class="font-semibold text-slate-700">Swift:</span> <span id="previewSwift">-</span></p>
+                            
+                            <img id="previewQris" src="" alt="QRIS" class="w-24 h-24 object-contain rounded border mt-2 hidden bg-white">
+                        </div>
+                    </div>
+
+                    <!-- Totals -->
+                    <div>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between text-slate-600">
+                                <span id="previewLabelSubtotal">Subtotal</span>
+                                <span id="previewSubtotal">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span id="previewLabelTax">Pajak (<span id="previewTaxLabel">0</span>%)</span>
+                                <span id="previewTaxVal">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span id="previewLabelDiscount">Diskon (<span id="previewDiscountLabel">0</span>%)</span>
+                                <span id="previewDiscountVal">- Rp 0</span>
+                            </div>
+                            <div class="flex justify-between items-center border-t-2 border-slate-800 pt-3 mt-3">
+                                <span class="text-lg font-bold text-slate-800" id="previewLabelTotal">Total Tagihan</span>
+                                <span id="previewTotal" class="text-xl font-black text-purple-600">Rp 0</span>
+                            </div>
+                        </div>
+                        <div class="mt-8 text-center text-sm text-slate-400 italic" id="previewThankYou">
+                            Terima kasih atas kerja samanya!
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIKA JAVASCRIPT -->
+    <script>
+        // Pesan rahasia untuk Developer Gen Z di Console :D
+        console.log("%c✨ No cap, this invoice generator is bussin'. Let's get that bag! 💰", "color: #a855f7; font-size: 16px; font-weight: bold;");
+
+        // --- SISTEM TRANSLASI (ID & EN) ---
+        const translations = {
+            id: {
+                save_status: "Draft Tersimpan Otomatis",
+                btn_reset: "Reset Draft",
+                section_info: "Info Invoice",
+                label_logo: "Unggah Logo",
+                label_inv_num: "Nomor Invoice",
+                label_status: "Status",
+                label_issue_date: "Tanggal Terbit",
+                label_due_date: "Tenggat Waktu",
+                status_unpaid: "🔴 Belum Bayar",
+                status_paid: "🟢 Lunas",
+                status_pending: "🟡 Tertunda",
+                status_preview_unpaid: "Belum Bayar",
+                status_preview_paid: "Lunas",
+                status_preview_pending: "Tertunda",
+                section_billed_by: "Ditagih Oleh (Anda)",
+                section_billed_to: "Ditagih Ke (Klien)",
+                section_items: "Daftar Item",
+                btn_add_item: "+ Tambah Item",
+                label_tax: "Pajak (%)",
+                label_discount: "Diskon (%)",
+                section_payment: "Info Pembayaran",
+                label_qris: "Unggah QRIS / Pembayaran QR",
+                
+                // Placeholders ID
+                ph_dev_name: "Nama Lengkap Anda / Alias",
+                ph_dev_company: "Nama Perusahaan / Studio",
+                ph_dev_email: "Alamat Email",
+                ph_dev_web: "Situs Web / Portofolio",
+                ph_client_name: "Nama Klien",
+                ph_client_company: "Perusahaan Klien",
+                ph_client_email: "Email Klien",
+                ph_client_phone: "Nomor Telepon Klien",
+                ph_client_address: "Alamat Klien",
+                ph_item_desc: "Deskripsi Item",
+                ph_bank_name: "Nama Bank",
+                ph_acc_num: "Nomor Rekening",
+                ph_acc_holder: "Nama Pemilik Rekening",
+                ph_swift: "Kode Swift (Opsional)",
+
+                // Live Preview ID
+                preview_invoice: "INVOICE",
+                preview_issue: "Tanggal Terbit:",
+                preview_due: "Tenggat Waktu:",
+                preview_status: "Status:",
+                preview_billed_to: "Ditagih Ke",
+                preview_th_desc: "Deskripsi",
+                preview_th_qty: "Jml",
+                preview_th_price: "Harga",
+                preview_th_amount: "Total",
+                preview_pay_title: "Info Pembayaran",
+                preview_pay_bank: "Bank:",
+                preview_pay_acc: "No. Rekening:",
+                preview_pay_name: "Nama:",
+                preview_subtotal: "Subtotal",
+                preview_tax: "Pajak",
+                preview_discount: "Diskon",
+                preview_total: "Total Tagihan",
+                preview_thank_you: "Terima kasih atas kerja samanya! ✨"
+            },
+            en: {
+                save_status: "Draft Auto-Saved",
+                btn_reset: "Reset Draft",
+                section_info: "Invoice Info",
+                label_logo: "Upload Logo",
+                label_inv_num: "Invoice Number",
+                label_status: "Status",
+                label_issue_date: "Issue Date",
+                label_due_date: "Due Date",
+                status_unpaid: "🔴 Unpaid",
+                status_paid: "🟢 Paid",
+                status_pending: "🟡 Pending",
+                status_preview_unpaid: "Unpaid",
+                status_preview_paid: "Paid",
+                status_preview_pending: "Pending",
+                section_billed_by: "Billed By (You)",
+                section_billed_to: "Billed To (Client)",
+                section_items: "Items",
+                btn_add_item: "+ Add Item",
+                label_tax: "Tax (%)",
+                label_discount: "Discount (%)",
+                section_payment: "Payment Info",
+                label_qris: "Upload QRIS / QR Payment",
+
+                // Placeholders EN
+                ph_dev_name: "Your Name / Alias",
+                ph_dev_company: "Company / Studio Name",
+                ph_dev_email: "Email Address",
+                ph_dev_web: "Website / Portfolio URL",
+                ph_client_name: "Client Name",
+                ph_client_company: "Client Company",
+                ph_client_email: "Client Email",
+                ph_client_phone: "Client Phone",
+                ph_client_address: "Client Address",
+                ph_item_desc: "Item Description",
+                ph_bank_name: "Bank Name",
+                ph_acc_num: "Account Number",
+                ph_acc_holder: "Account Holder Name",
+                ph_swift: "Swift Code (Optional)",
+
+                // Live Preview EN
+                preview_invoice: "INVOICE",
+                preview_issue: "Issue Date:",
+                preview_due: "Due Date:",
+                preview_status: "Status:",
+                preview_billed_to: "Billed To",
+                preview_th_desc: "Description",
+                preview_th_qty: "Qty",
+                preview_th_price: "Price",
+                preview_th_amount: "Amount",
+                preview_pay_title: "Payment Info",
+                preview_pay_bank: "Bank:",
+                preview_pay_acc: "Account No:",
+                preview_pay_name: "Name:",
+                preview_subtotal: "Subtotal",
+                preview_tax: "Tax",
+                preview_discount: "Discount",
+                preview_total: "Total Due",
+                preview_thank_you: "Thank you for your business! ✨"
+            }
+        };
+
+        /* DOKUMENTASI STATE:
+           Kita menyimpan semua data invoice dalam satu objek `state` sentral.
+           Objek ini akan terus diperbarui saat pengguna mengetik, dan akan 
+           disimpan ke `localStorage` agar aman.
+        */
+        let state = {
+            language: 'id', // Default language is Indonesian (id)
+            logoUrl: '',
+            qrisUrl: '',
+            invNum: '',
+            invStatus: 'Unpaid',
+            invDate: '',
+            invDueDate: '',
+            devName: '',
+            devCompany: '',
+            devEmail: '',
+            devWeb: '',
+            clientName: '',
+            clientCompany: '',
+            clientEmail: '',
+            clientPhone: '',
+            clientAddress: '',
+            items: [{ desc: '', qty: 1, price: 0 }], // Minimal 1 item kosong di awal
+            tax: 0,
+            discount: 0,
+            bankName: '',
+            accNumber: '',
+            accHolder: '',
+            swiftCode: ''
+        };
+
+        // --- INISIALISASI & THEME & BAHASA ---
+        
+        function init() {
+            // Cek apakah ada data tersimpan di localStorage
+            const saved = localStorage.getItem('genzInvoiceData');
+            if (saved) {
+                state = JSON.parse(saved);
+                // Menjamin parameter language ada dalam state lama
+                if (!state.language) state.language = 'id';
+            } else {
+                // Set default tanggal hari ini
+                const today = new Date().toISOString().split('T')[0];
+                state.invDate = today;
+                
+                // Auto-generate invoice number format: INV-YYYY-XXXX
+                const year = new Date().getFullYear();
+                const randomNum = Math.floor(1000 + Math.random() * 9000);
+                state.invNum = `INV-${year}-${randomNum}`;
+                state.language = 'id';
+            }
+
+            // Inisialisasi Tema
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.remove('gradient-bg-dark');
+                document.body.classList.add('gradient-bg-light');
+            }
+
+            renderFormInputs();
+            renderItemsForm();
+            applyLanguage();
+            updatePreview();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const body = document.body;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                body.classList.remove('gradient-bg-dark');
+                body.classList.add('gradient-bg-light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                body.classList.remove('gradient-bg-light');
+                body.classList.add('gradient-bg-dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // --- MANAJEMEN BAHASA (ID/EN) ---
+        function setLanguage(lang) {
+            state.language = lang;
+            applyLanguage();
+            renderItemsForm(); // Rerender items to update placeholders
+            updateData(); // Save state and update live preview
+        }
+
+        function applyLanguage() {
+            const lang = state.language;
+            const dict = translations[lang];
+
+            // 1. Update text nodes with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.textContent = dict[key];
+                }
+            });
+
+            // 2. Update placeholders with data-i18n-placeholder
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dict[key]) {
+                    el.placeholder = dict[key];
+                }
+            });
+
+            // 3. Highlight selected language button active style
+            const btnId = document.getElementById('lang-id');
+            const btnEn = document.getElementById('lang-en');
+
+            if (lang === 'id') {
+                btnId.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-purple-600 text-white shadow-sm shadow-purple-500/50";
+                btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-500 dark:text-slate-400 hover:text-purple-500";
+            } else {
+                btnId.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition text-slate-500 dark:text-slate-400 hover:text-purple-500";
+                btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-extrabold transition bg-purple-600 text-white shadow-sm shadow-purple-500/50";
+            }
+        }
+
+        // --- PENGELOLAAN DATA & FORM ---
+
+        // Memasukkan data dari State ke dalam Input HTML saat pertama dimuat
+        function renderFormInputs() {
+            const fields = ['invNum', 'invStatus', 'invDate', 'invDueDate', 'devName', 'devCompany', 'devEmail', 'devWeb', 'clientName', 'clientCompany', 'clientEmail', 'clientPhone', 'clientAddress', 'bankName', 'accNumber', 'accHolder', 'swiftCode'];
+            
+            fields.forEach(id => {
+                if(document.getElementById(id)) {
+                    document.getElementById(id).value = state[id];
+                }
+            });
+
+            document.getElementById('invTax').value = state.tax;
+            document.getElementById('invDiscount').value = state.discount;
+
+            // Render gambar (Logo & QRIS) jika ada
+            if(state.logoUrl) {
+                document.getElementById('logoPreviewWrap').classList.remove('hidden');
+                document.getElementById('logoPreviewForm').src = state.logoUrl;
+            }
+            if(state.qrisUrl) {
+                document.getElementById('qrisPreviewWrap').classList.remove('hidden');
+                document.getElementById('qrisPreviewForm').src = state.qrisUrl;
+            }
+        }
+
+        // Fungsi ini dipanggil setiap kali ada input yang diketik pengguna
+        function updateData() {
+            // Ambil semua nilai dari form
+            const fields = ['invNum', 'invStatus', 'invDate', 'invDueDate', 'devName', 'devCompany', 'devEmail', 'devWeb', 'clientName', 'clientCompany', 'clientEmail', 'clientPhone', 'clientAddress', 'bankName', 'accNumber', 'accHolder', 'swiftCode'];
+            
+            fields.forEach(id => {
+                state[id] = document.getElementById(id).value;
+            });
+
+            state.tax = parseFloat(document.getElementById('invTax').value) || 0;
+            state.discount = parseFloat(document.getElementById('invDiscount').value) || 0;
+
+            // Simpan ke LocalStorage dan perbarui Preview Live
+            saveData();
+            updatePreview();
+        }
+
+        // --- PENGELOLAAN GAMBAR (Base64) ---
+        
+        // Membaca file gambar yang diupload dan mengubahnya ke Base64 URL
+        function handleImageUpload(event, stateKey) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    state[stateKey] = e.target.result; // Simpan base64 ke state
+                    renderFormInputs(); // Update thumbnail di form
+                    updateData();       // Update ke preview & storage
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- PENGELOLAAN ITEM INVOICE (Dinamic Table) ---
+
+        function renderItemsForm() {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = ''; // Bersihkan kontainer
+            const placeholderText = translations[state.language].ph_item_desc;
+
+            state.items.forEach((item, index) => {
+                const itemRow = document.createElement('div');
+                itemRow.className = "flex gap-2 items-start";
+                itemRow.innerHTML = `
+                    <div class="flex-1">
+                        <input type="text" placeholder="${placeholderText}" class="input-glass w-full p-2 rounded-lg text-sm mb-2" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)">
+                    </div>
+                    <div class="w-20">
+                        <input type="number" placeholder="Qty" min="1" class="input-glass w-full p-2 rounded-lg text-sm text-center" value="${item.qty}" oninput="updateItem(${index}, 'qty', this.value)">
+                    </div>
+                    <div class="w-32">
+                        <input type="number" placeholder="Price" min="0" class="input-glass w-full p-2 rounded-lg text-sm text-right" value="${item.price}" oninput="updateItem(${index}, 'price', this.value)">
+                    </div>
+                    <button onclick="removeItem(${index})" class="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition" title="Remove Item">
+                        <i class="ph ph-trash text-lg"></i>
+                    </button>
+                `;
+                container.appendChild(itemRow);
+            });
+        }
+
+        function addItem() {
+            state.items.push({ desc: '', qty: 1, price: 0 });
+            renderItemsForm();
+            updateData();
+        }
+
+        function removeItem(index) {
+            state.items.splice(index, 1);
+            if (state.items.length === 0) {
+                state.items.push({ desc: '', qty: 1, price: 0 }); // Sisakan min 1
+            }
+            renderItemsForm();
+            updateData();
+        }
+
+        function updateItem(index, field, value) {
+            if (field === 'desc') state.items[index][field] = value;
+            else state.items[index][field] = parseFloat(value) || 0;
+            updateData();
+        }
+
+        // --- AUTO SAVE ---
+
+        function saveData() {
+            localStorage.setItem('genzInvoiceData', JSON.stringify(state));
+            
+            // Tampilkan tulisan "Draft Auto-Saved" sementara sesuai bahasa aktif
+            const saveLabel = document.getElementById('saveStatus');
+            saveLabel.classList.remove('hidden');
+            setTimeout(() => { saveLabel.classList.add('hidden'); }, 2000);
+        }
+
+        function clearData() {
+            const confirmMsg = state.language === 'id' ? "Apakah kamu yakin ingin mereset semua data draft?" : "Are you sure you want to reset all draft data?";
+            if(confirm(confirmMsg)) {
+                localStorage.removeItem('genzInvoiceData');
+                location.reload();
+            }
+        }
+
+        // --- LIVE PREVIEW RENDERER (TERMASUK TRANSLATED LABELS) ---
+
+        // Fungsi pembantu untuk memformat angka menjadi Rupiah (Bisa disesuaikan ke USD jika mau)
+        const formatMoney = (amount) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+        };
+
+        // Fungsi ini menyuntikkan data State ke dalam elemen HTML Preview A4
+        function updatePreview() {
+            const lang = state.language;
+            const dict = translations[lang];
+
+            // 1. Update Preview Static Labels berdasarkan Bahasa Aktif
+            document.getElementById('previewInvLabel').textContent = dict.preview_invoice;
+            document.getElementById('previewLabelIssue').textContent = dict.preview_issue;
+            document.getElementById('previewLabelDue').textContent = dict.preview_due;
+            document.getElementById('previewLabelStatus').textContent = dict.preview_status;
+            document.getElementById('previewLabelBilledTo').textContent = dict.preview_billed_to;
+            
+            document.getElementById('thDesc').textContent = dict.preview_th_desc;
+            document.getElementById('thQty').textContent = dict.preview_th_qty;
+            document.getElementById('thPrice').textContent = dict.preview_th_price;
+            document.getElementById('thAmount').textContent = dict.preview_th_amount;
+
+            document.getElementById('previewPaymentTitle').textContent = dict.preview_pay_title;
+            document.getElementById('previewBankLabel').textContent = dict.preview_pay_bank;
+            document.getElementById('previewAccLabel').textContent = dict.preview_pay_acc;
+            document.getElementById('previewNameLabel').textContent = dict.preview_pay_name;
+
+            document.getElementById('previewLabelSubtotal').textContent = dict.preview_subtotal;
+            document.getElementById('previewLabelTax').innerHTML = `${dict.preview_tax} (<span id="previewTaxLabel">0</span>%)`;
+            document.getElementById('previewLabelDiscount').innerHTML = `${dict.preview_discount} (<span id="previewDiscountLabel">0</span>%)`;
+            document.getElementById('previewLabelTotal').textContent = dict.preview_total;
+            document.getElementById('previewThankYou').textContent = dict.preview_thank_you;
+
+            // 2. Header Info Data
+            document.getElementById('previewDevName').textContent = state.devName || 'Your Name';
+            document.getElementById('previewDevCompany').textContent = state.devCompany || 'Company Name';
+            document.getElementById('previewDevEmail').textContent = state.devEmail || 'email@example.com';
+            document.getElementById('previewDevWeb').textContent = state.devWeb || 'www.example.com';
+            
+            document.getElementById('previewInvNum').textContent = state.invNum || 'INV-XXXX';
+            document.getElementById('previewDate').textContent = state.invDate || '-';
+            document.getElementById('previewDueDate').textContent = state.invDueDate || '-';
+            
+            // Translasi Status di Preview
+            const statusEl = document.getElementById('previewStatus');
+            const statusKey = 'status_preview_' + state.invStatus.toLowerCase();
+            statusEl.textContent = dict[statusKey] || state.invStatus;
+            statusEl.className = state.invStatus === 'Paid' ? 'font-bold text-green-500' : 
+                                 state.invStatus === 'Pending' ? 'font-bold text-yellow-500' : 'font-bold text-red-500';
+
+            // Client Info Data
+            document.getElementById('previewClientName').textContent = state.clientName || 'Client Name';
+            document.getElementById('previewClientCompany').textContent = state.clientCompany || 'Client Company';
+            document.getElementById('previewClientContact').textContent = `${state.clientEmail} ${state.clientPhone ? '| '+state.clientPhone : ''}`;
+            document.getElementById('previewClientAddress').textContent = state.clientAddress || 'Client Address';
+
+            // Payment Info Data
+            document.getElementById('previewBank').textContent = state.bankName || '-';
+            document.getElementById('previewAccNum').textContent = state.accNumber || '-';
+            document.getElementById('previewAccHolder').textContent = state.accHolder || '-';
+            
+            const swiftEl = document.getElementById('previewSwiftWrap');
+            if(state.swiftCode) {
+                swiftEl.classList.remove('hidden');
+                document.getElementById('previewSwift').textContent = state.swiftCode;
+            } else {
+                swiftEl.classList.add('hidden');
+            }
+
+            // Images
+            const logoEl = document.getElementById('previewLogo');
+            if(state.logoUrl) {
+                logoEl.src = state.logoUrl;
+                logoEl.classList.remove('hidden');
+            } else {
+                logoEl.classList.add('hidden');
+            }
+
+            const qrisEl = document.getElementById('previewQris');
+            if(state.qrisUrl) {
+                qrisEl.src = state.qrisUrl;
+                qrisEl.classList.remove('hidden');
+            } else {
+                qrisEl.classList.add('hidden');
+            }
+
+            // Table & Math Calculations
+            const tbody = document.getElementById('previewTableBody');
+            tbody.innerHTML = '';
+            let subtotal = 0;
+
+            state.items.forEach(item => {
+                if(!item.desc && item.price === 0) return; // Skip baris kosong
+                const amount = item.qty * item.price;
+                subtotal += amount;
+                
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-50 last:border-0">
+                        <td class="py-3 pr-2 text-slate-800 font-medium">${item.desc || '-'}</td>
+                        <td class="py-3 px-2 text-center">${item.qty}</td>
+                        <td class="py-3 px-2 text-right">${formatMoney(item.price)}</td>
+                        <td class="py-3 pl-2 text-right font-semibold text-slate-800">${formatMoney(amount)}</td>
+                    </tr>
+                `;
+            });
+
+            const taxAmount = subtotal * (state.tax / 100);
+            const discountAmount = subtotal * (state.discount / 100);
+            const total = subtotal + taxAmount - discountAmount;
+
+            document.getElementById('previewSubtotal').textContent = formatMoney(subtotal);
+            document.getElementById('previewTaxLabel').textContent = state.tax;
+            document.getElementById('previewTaxVal').textContent = formatMoney(taxAmount);
+            document.getElementById('previewDiscountLabel').textContent = state.discount;
+            document.getElementById('previewDiscountVal').textContent = `- ${formatMoney(discountAmount)}`;
+            document.getElementById('previewTotal').textContent = formatMoney(total);
+        }
+
+
+        // --- FITUR EKSPOR ---
+
+        // Konfigurasi standar untuk html2pdf
+        const getPdfOptions = () => ({
+            margin:       0,
+            filename:     `${state.invNum || 'Invoice'}_${state.clientName || 'Client'}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        });
+
+        function exportPDF() {
+            const element = document.getElementById('invoiceDocument');
+            // Menambah kelas sementara untuk memperbaiki scaling saat proses cetak jika layar kecil
+            element.style.transform = "none"; 
+            html2pdf().set(getPdfOptions()).from(element).save().then(() => {
+                console.log("PDF Downloaded!");
+                updatePreview(); // Reset visual scaling ke sediakala
+            });
+        }
+
+        function exportPNG() {
+            const element = document.getElementById('invoiceDocument');
+            html2pdf().set(getPdfOptions()).from(element).outputImg('datauristring').then(function (pdfAsString) {
+                const link = document.createElement('a');
+                link.download = `${state.invNum || 'Invoice'}.png`;
+                link.href = pdfAsString;
+                link.click();
+            });
+        }
+
+        function exportExcel() {
+            // Membuat struktur tabel sederhana untuk Excel menggunakan SheetJS
+            const isIndo = state.language === 'id';
+            const ws_data = [
+                [isIndo ? "DATA INVOICE" : "INVOICE DATA", "", "", ""],
+                [isIndo ? "Nomor Invoice" : "Invoice Number", state.invNum],
+                [isIndo ? "Tanggal Terbit" : "Issue Date", state.invDate],
+                [isIndo ? "Tenggat Waktu" : "Due Date", state.invDueDate],
+                ["Status", state.invStatus],
+                ["", "", "", ""],
+                [isIndo ? "DITAGIH OLEH" : "BILLED FROM", state.devName, isIndo ? "DITAGIH KE" : "BILLED TO", state.clientName],
+                [isIndo ? "Perusahaan" : "Company", state.devCompany, isIndo ? "Perusahaan" : "Company", state.clientCompany],
+                ["Email", state.devEmail, "Email", state.clientEmail],
+                ["", "", "", ""],
+                [isIndo ? "DAFTAR ITEM" : "ITEMS", isIndo ? "JUMLAH" : "QTY", isIndo ? "HARGA" : "PRICE", isIndo ? "TOTAL" : "AMOUNT"]
+            ];
+
+            let subtotal = 0;
+            state.items.forEach(item => {
+                const amt = item.qty * item.price;
+                subtotal += amt;
+                ws_data.push([item.desc, item.qty, item.price, amt]);
+            });
+
+            const taxAmt = subtotal * (state.tax/100);
+            const discAmt = subtotal * (state.discount/100);
+            const total = subtotal + taxAmt - discAmt;
+
+            ws_data.push(["", "", "", ""]);
+            ws_data.push(["", "", "Subtotal", subtotal]);
+            ws_data.push(["", "", `${isIndo ? 'Pajak' : 'Tax'} (${state.tax}%)`, taxAmt]);
+            ws_data.push(["", "", `${isIndo ? 'Diskon' : 'Discount'} (${state.discount}%)`, -discAmt]);
+            ws_data.push(["", "", isIndo ? "TOTAL TAGIHAN" : "TOTAL DUE", total]);
+
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Invoice");
+            
+            XLSX.writeFile(wb, `${state.invNum || 'Invoice'}.xlsx`);
+        }
+
+        // Panggil fungsi inisialisasi saat window selesai dimuat
+        window.onload = init;
+
+    </script>
+</body>
+</html>
